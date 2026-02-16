@@ -71,12 +71,25 @@ namespace FortPlayerControllerAthena {
         auto PC = (AFortPlayerControllerAthena*)Comp->GetOwner();
         UWorld::GetWorld()->AuthorityGameMode->RestartPlayer(PC);
 
+        AFortPlayerStateAthena* PlayerState = PC ? (AFortPlayerStateAthena*)PC->PlayerState : nullptr;
+        if (PlayerState)
+        {
+            PlayerState->bInAircraft = false;
+            PlayerState->bHasEverSkydivedFromBus = true;
+            PlayerState->ForceNetUpdate();
+        }
+
         if (PC->MyFortPawn)
         {
             PC->ClientSetRotation(ClientRotation, true);
             PC->MyFortPawn->BeginSkydiving(true);
             PC->MyFortPawn->SetHealth(100);
             PC->MyFortPawn->SetShield(0);
+
+            if (PC->MyFortPawn->AbilitySystemComponent)
+            {
+                PC->MyFortPawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+            }
         }
     }
 

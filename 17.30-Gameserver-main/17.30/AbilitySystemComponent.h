@@ -64,22 +64,40 @@ namespace AbilitySystemComponent {
         const UGameplayAbility* AbilityToActivate = Spec->Ability;
 
         AActor* OwnerActor = AbilitySystemComponent->GetOwner();
+        AFortPlayerControllerAthena* PC = nullptr;
 
-        // Only block aircraft-specific abilities while in aircraft, allow consumables/reload/grenades/interact
-        if (OwnerActor && OwnerActor->IsA(AFortPlayerControllerAthena::StaticClass()))
+        if (OwnerActor)
         {
-            AFortPlayerControllerAthena* PC = (AFortPlayerControllerAthena*)OwnerActor;
-            if (PC->IsInAircraft())
+            if (OwnerActor->IsA(AFortPlayerControllerAthena::StaticClass()))
             {
-                // Allow essential abilities even in aircraft
-                std::string AbilityName = AbilityToActivate ? AbilityToActivate->GetFullName() : "";
-                if (AbilityToActivate && 
-                    AbilityName.find("Consumable") == std::string::npos &&
-                    AbilityName.find("Reload") == std::string::npos &&
-                    AbilityName.find("GA_Athena_Heal") == std::string::npos &&
-                    AbilityName.find("Grenade") == std::string::npos &&
-                    AbilityName.find("Interact") == std::string::npos &&
-                    AbilityName.find("Use") == std::string::npos)
+                PC = (AFortPlayerControllerAthena*)OwnerActor;
+            }
+            else if (OwnerActor->IsA(AFortPlayerPawnAthena::StaticClass()))
+            {
+                AFortPlayerPawnAthena* Pawn = (AFortPlayerPawnAthena*)OwnerActor;
+                PC = Pawn ? (AFortPlayerControllerAthena*)Pawn->Controller : nullptr;
+            }
+            else if (OwnerActor->IsA(AFortPlayerStateAthena::StaticClass()))
+            {
+                AFortPlayerStateAthena* PlayerState = (AFortPlayerStateAthena*)OwnerActor;
+                PC = PlayerState ? (AFortPlayerControllerAthena*)PlayerState->GetOwner() : nullptr;
+            }
+        }
+
+        // Only block clearly aircraft-specific abilities while in aircraft
+        if (PC && PC->IsInAircraft())
+        {
+            std::string AbilityName = AbilityToActivate ? AbilityToActivate->GetFullName() : "";
+            if (AbilityToActivate)
+            {
+                bool bShouldBlock = AbilityName.find("Aircraft") != std::string::npos ||
+                    AbilityName.find("SkyDive") != std::string::npos ||
+                    AbilityName.find("Skydiv") != std::string::npos ||
+                    AbilityName.find("Glider") != std::string::npos ||
+                    AbilityName.find("Parachute") != std::string::npos ||
+                    AbilityName.find("Bus") != std::string::npos;
+
+                if (bShouldBlock)
                 {
                     AbilitySystemComponent->ClientActivateAbilityFailed(Handle, PredictionKey.Current);
                     return;
@@ -88,12 +106,13 @@ namespace AbilitySystemComponent {
         }
 
         // Clear any blocking states before attempting activation
-        if (AbilitySystemComponent) {
+        if (AbilitySystemComponent)
+        {
             AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
         }
 
         UGameplayAbility* InstancedAbility = nullptr;
-        Spec->InputPressed = true;
+        Spec->InputPressed = InputPressed;
 
         if (!InternalTryActivateAbility(AbilitySystemComponent, Handle, PredictionKey, &InstancedAbility, nullptr, TriggerEventData))
         {
