@@ -81,7 +81,7 @@ public:
     }
 };
 
-class BTComposite_Selector
+class BTComposite_Selector : public BTNode
 {
 private:
     std::vector<BTNode*> Children;
@@ -91,6 +91,20 @@ private:
 public:
     std::string Name;
     std::string NodeName;
+
+    EBTNodeResult ChildTask(BTContext Context) override {
+        // For selectors, the child task is handled by Tick
+        return EBTNodeResult::Succeeded;
+    }
+
+    void AddDecorator(BTDecorator* Decorator) {
+        Decorators.push_back(Decorator);
+    }
+
+    void AddService(BTService* Service) {
+        Services.push_back(Service);
+    }
+
 public:
     void AddChild(BTNode* Node) {
         Children.push_back(Node);
@@ -102,14 +116,6 @@ public:
 
     size_t GetChildCount() const {
         return Children.size();
-    }
-
-    void AddDecorator(BTDecorator* Decorator) {
-        Decorators.push_back(Decorator);
-    }
-
-    void AddService(BTService* Service) {
-        Services.push_back(Service);
     }
 
     virtual EBTNodeResult Tick(BTContext Context) {

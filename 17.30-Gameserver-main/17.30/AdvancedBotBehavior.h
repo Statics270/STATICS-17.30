@@ -3,6 +3,7 @@
 #include "BehaviorTreeSystem.h"
 #include "BehaviorTreeTasks.h"
 #include "BehaviorTreeDecorators.h"
+#include "BotsSpawner.h"
 #include <map>
 
 // Forward declaration to avoid circular include
@@ -451,7 +452,7 @@ namespace AdvancedBotBehavior {
                     FVector ShootDir = Context.Pawn->GetActorForwardVector();
                     FVector AimLoc = Context.Pawn->K2_GetActorLocation() + (ShootDir * 5000.f);
                     Context.Controller->K2_SetFocalPoint(AimLoc);
-                    Context.Pawn->CurrentWeapon->ServerStartFire();
+                    Context.Pawn->PawnStartFire(0);
                     return EBTNodeResult::Succeeded;
                 }
             }
