@@ -16,9 +16,11 @@ namespace AbilitySystemComponent {
     void GiveAbilitySet(UFortAbilitySet* AbilitySet, AFortPlayerState* PS)
     {
         if (!AbilitySet || !PS) {
+            std::string abilitySetName = AbilitySet ? AbilitySet->GetFullName() : "None";
+            std::string playerStateName = PS ? PS->GetFullName() : "None";
             Log("Cannot Give AbilitySet! NULL!");
-            Log("AbilitySet: " + AbilitySet->GetFullName());
-            Log("PlayerState: " + PS->GetFullName());
+            Log(std::string("AbilitySet: ") + abilitySetName);
+            Log(std::string("PlayerState: ") + playerStateName);
             return;
         }
 
