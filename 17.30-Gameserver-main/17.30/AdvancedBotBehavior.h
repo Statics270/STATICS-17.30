@@ -461,76 +461,7 @@ namespace AdvancedBotBehavior {
     };
 
     // Update the player bots behavior tree to include advanced behaviors
-    void EnhancePlayerBotBehaviorTree(PlayerBots::PhoebeBot* Bot) {
-        if (!Bot || !Bot->BT_Phoebe) return;
-
-        BehaviorTree* Tree = Bot->BT_Phoebe;
-
-        // Find the root selector
-        BTComposite_Selector* RootSelector = dynamic_cast<BTComposite_Selector*>(Tree->RootNode);
-        if (!RootSelector) return;
-
-        // Add warmup behaviors
-        auto* WarmupSelector = new BTComposite_Selector();
-        WarmupSelector->NodeName = "WarmupBehavior";
-
-        {
-            // Lobby emotes
-            auto* Decorator = new BTDecorator_CheckEnum();
-            Decorator->SelectedKeyName = ConvFName(L"AIEvaluator_Global_GamePhase");
-            Decorator->IntValue = (int)EAthenaGamePhase::Warmup;
-
-            auto* EmoteTask = new BTTask_PlayLobbyEmote();
-            EmoteTask->AddDecorator(Decorator);
-            WarmupSelector->AddChild(EmoteTask);
-        }
-
-        {
-            // Lobby shooting
-            auto* Decorator = new BTDecorator_CheckEnum();
-            Decorator->SelectedKeyName = ConvFName(L"AIEvaluator_Global_GamePhase");
-            Decorator->IntValue = (int)EAthenaGamePhase::Warmup;
-
-            auto* ShootTask = new BTTask_LobbyShoot();
-            ShootTask->AddDecorator(Decorator);
-            WarmupSelector->AddChild(ShootTask);
-        }
-
-        Tree->AllNodes.push_back(WarmupSelector);
-
-        // Add combat and looting behaviors
-        auto* CombatSelector = new BTComposite_Selector();
-        CombatSelector->NodeName = "CombatAndLooting";
-
-        {
-            // Engage enemy
-            auto* CombatTask = new BTTask_EngageEnemy();
-            CombatTask->NodeName = "EngageEnemy";
-            CombatSelector->AddChild(CombatTask);
-        }
-
-        {
-            // Loot nearby
-            auto* LootTask = new BTTask_LootNearby();
-            LootTask->NodeName = "LootNearby";
-            CombatSelector->AddChild(LootTask);
-        }
-
-        {
-            // Build cover
-            auto* BuildTask = new BTTask_BuildCover();
-            BuildTask->NodeName = "BuildCover";
-            CombatSelector->AddChild(BuildTask);
-        }
-
-        Tree->AllNodes.push_back(CombatSelector);
-
-        // Insert after warmup check
-        if (RootSelector->GetChildCount() > 1) {
-            RootSelector->InsertChild(1, CombatSelector);
-            RootSelector->InsertChild(2, WarmupSelector);
-        }
-    }
+    void EnhancePlayerBotBehaviorTree(PlayerBots::PhoebeBot* Bot);
 
     void Initialize() {
         Log("Initializing Advanced Bot Behavior System...");
