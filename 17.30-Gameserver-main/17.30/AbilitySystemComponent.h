@@ -62,13 +62,20 @@ namespace AbilitySystemComponent {
         const UGameplayAbility* AbilityToActivate = Spec->Ability;
 
         AActor* OwnerActor = AbilitySystemComponent->GetOwner();
+
+        // Only block aircraft-specific abilities while in aircraft, allow consumables/reload
         if (OwnerActor && OwnerActor->IsA(AFortPlayerControllerAthena::StaticClass()))
         {
             AFortPlayerControllerAthena* PC = (AFortPlayerControllerAthena*)OwnerActor;
             if (PC->IsInAircraft())
             {
-                AbilitySystemComponent->ClientActivateAbilityFailed(Handle, PredictionKey.Current);
-                return;
+                // Allow consumables and reload even in aircraft
+                if (AbilityToActivate && !AbilityToActivate->IsA(UFortGameplayAbilityConsumable::StaticClass()) &&
+                    !AbilityToActivate->GetClass()->GetName().contains("Reload"))
+                {
+                    AbilitySystemComponent->ClientActivateAbilityFailed(Handle, PredictionKey.Current);
+                    return;
+                }
             }
         }
 
@@ -84,6 +91,25 @@ namespace AbilitySystemComponent {
         }
     }
 
+    // Hook to fix consumable blocking
+    void (*ConsumeItemOG)(AFortPlayerControllerAthena* PC, FFortItemEntry& ItemEntry);
+    void ConsumeItem(AFortPlayerControllerAthena* PC, FFortItemEntry& ItemEntry)
+    {
+        if (!PC || !PC->Pawn)
+            return ConsumeItemOG(PC, ItemEntry);
+
+        // Ensure we're not blocking consumables unnecessarily
+        AFortPlayerPawnAthena* Pawn = (AFortPlayerPawnAthena*)PC->Pawn;
+
+        // Reset any blocked state flags
+        if (Pawn->AbilitySystemComponent)
+        {
+            Pawn->AbilitySystemComponent->CancelAllAbilities(nullptr);
+        }
+
+        return ConsumeItemOG(PC, ItemEntry);
+    }
+
     void HookAll()
     {
         int InternalServerTryActiveAbilityIndex = 0xFE;
@@ -91,5 +117,10 @@ namespace AbilitySystemComponent {
         HookVTable(UAbilitySystemComponent::GetDefaultObj(), InternalServerTryActiveAbilityIndex, InternalServerTryActiveAbility, nullptr);
         HookVTable(UFortAbilitySystemComponent::GetDefaultObj(), InternalServerTryActiveAbilityIndex, InternalServerTryActiveAbility, nullptr);
         HookVTable(UFortAbilitySystemComponentAthena::GetDefaultObj(), InternalServerTryActiveAbilityIndex, InternalServerTryActiveAbility, nullptr);
+
+        // Hook consumable usage to prevent blocking
+        MH_CreateHook((LPVOID)(ImageBase + 0x48F5F80), ConsumeItem, (LPVOID*)&ConsumeItemOG);
+
+        Log("AbilitySystemComponent Hooked!");
     }
 }
