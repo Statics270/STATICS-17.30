@@ -204,8 +204,8 @@ namespace FortPlayerPawn {
                 if (bHasJumped && !bHasLanded)
                 {
                     BotController->Blackboard->SetValueAsBool(UKismetStringLibrary::GetDefaultObj()->Conv_StringToName(L"AIEvaluator_Global_HasEverJumpedFromBusAndLandedKey"), true);
-                    BotController->Blackboard->SetValueAsEnum(UKismetStringLibrary::GetDefaultObj()->Conv_StringToName(L"AIEvaluator_Glide_ExecutionStatus"), (int)EExecutionStatus::ExecutionComplete);
-                    BotController->Blackboard->SetValueAsEnum(UKismetStringLibrary::GetDefaultObj()->Conv_StringToName(L"AIEvaluator_Dive_ExecutionStatus"), (int)EExecutionStatus::ExecutionComplete);
+                    BotController->Blackboard->SetValueAsEnum(UKismetStringLibrary::GetDefaultObj()->Conv_StringToName(L"AIEvaluator_Glide_ExecutionStatus"), (int)EExecutionStatus::ExecutionSuccess);
+                    BotController->Blackboard->SetValueAsEnum(UKismetStringLibrary::GetDefaultObj()->Conv_StringToName(L"AIEvaluator_Dive_ExecutionStatus"), (int)EExecutionStatus::ExecutionSuccess);
                     Log("Bot landed from bus, enabling normal behavior!");
                 }
             }
