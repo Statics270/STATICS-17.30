@@ -62,7 +62,7 @@ namespace AdvancedBotBehavior {
                 POISpawnPoint Point;
                 Point.POIName = POIName;
                 Point.Location = Locations[0]; // Use first location as center
-                Point.MaxBots = std::min((int)(Locations.size() / 2), 10); // Scale bots by POI size
+                Point.MaxBots = (int)(Locations.size() / 2) < 10 ? (int)(Locations.size() / 2) : 10; // Scale bots by POI size
                 Point.CurrentBots = 0;
                 POISpawnPoints.push_back(Point);
             }
