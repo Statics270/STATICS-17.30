@@ -306,6 +306,14 @@ namespace FortGameModeAthena {
 
         ApplyCharacterCustomization(PlayerState, Pawn);
 
+        if (Pawn) {
+            Pawn->bIsInvulnerable = false;
+            Pawn->bCanBeDamaged = true;
+            if (Pawn->AbilitySystemComponent) {
+                Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+            }
+        }
+
         return Pawn;
     }
 
@@ -316,6 +324,19 @@ namespace FortGameModeAthena {
             AFortPlayerStateAthena* botPS = bot->PlayerState;
             botPS->bInAircraft = true;
             bot->PC->Blackboard->SetValueAsBool(UKismetStringLibrary::GetDefaultObj()->Conv_StringToName(L"AIEvaluator_Global_IsInBus"), true);
+        }
+
+        for (int i = 0; i < GameMode->AlivePlayers.Num(); i++) {
+            AFortPlayerControllerAthena* PC = GameMode->AlivePlayers[i];
+            if (!PC || !PC->MyFortPawn) {
+                continue;
+            }
+
+            PC->MyFortPawn->bIsInvulnerable = false;
+            PC->MyFortPawn->bCanBeDamaged = true;
+            if (PC->MyFortPawn->AbilitySystemComponent) {
+                PC->MyFortPawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+            }
         }
 
         return StartAircraftPhaseOG(GameMode, bUseAircraftCountdown);

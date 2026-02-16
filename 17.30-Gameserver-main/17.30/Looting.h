@@ -311,9 +311,13 @@ namespace Looting {
         return LootDrops;
     }
 
-    char SpawnLoot(ABuildingContainer* BuildingContainer)
+    char SpawnLoot(ABuildingContainer* BuildingContainer, AFortPlayerPawn* SearchingPawn)
     {
         static auto Bars = StaticLoadObject<UFortItemDefinition>("/Game/Items/ResourcePickups/Athena_WadsItemData.Athena_WadsItemData");
+
+        if (!BuildingContainer) {
+            return false;
+        }
 
         std::string ClassName = BuildingContainer->Class->GetName();
 
@@ -332,8 +336,14 @@ namespace Looting {
             PickupSourceTypeFlags = EFortPickupSourceTypeFlag::FloorLoot;
         }
 
+        BuildingContainer->SetNetDormancy(ENetDormancy::DORM_Awake);
         BuildingContainer->bAlreadySearched = true;
+        BuildingContainer->BP_SetAlreadySearched(true);
         BuildingContainer->SearchBounceData.SearchAnimationCount++;
+        if (SearchingPawn) {
+            BuildingContainer->SearchBounceData.SearchingPawn = SearchingPawn;
+        }
+        BuildingContainer->OnSetSearched();
         BuildingContainer->OnRep_bAlreadySearched();
 
         if (SearchLootTierGroup == Loot_Treasure)
