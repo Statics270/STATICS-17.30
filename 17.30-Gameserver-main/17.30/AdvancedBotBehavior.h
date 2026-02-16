@@ -127,10 +127,17 @@ namespace AdvancedBotBehavior {
             return;
         }
 
-        // Create a temporary spawn point actor
-        AActor* SpawnPoint = SpawnActor<AActor>(SpawnLoc);
+        // Use a player start at the POI location
+        AFortPlayerStartWarmup* SpawnPoint = nullptr;
+        for (auto* Start : PlayerStarts) {
+            if (Start && FVector::Dist(Start->K2_GetActorLocation(), SpawnLoc) < 5000.f) {
+                SpawnPoint = (AFortPlayerStartWarmup*)Start;
+                break;
+            }
+        }
+
         if (!SpawnPoint) {
-            Log("Failed to create spawn point!");
+            Log("Failed to find spawn point near POI!");
             return;
         }
 
@@ -377,8 +384,10 @@ namespace AdvancedBotBehavior {
                     int EmoteIndex = UKismetMathLibrary::RandomIntegerInRange(0, PlayerState->CosmeticLoadout.Dances.Num() - 1);
                     UAthenaDanceItemDefinition* Emote = PlayerState->CosmeticLoadout.Dances[EmoteIndex];
 
-                    if (Emote) {
-                        Context.Pawn->ServerPlayEmote(Emote);
+                    if (Emote && Context.Controller) {
+                        // ServerPlayEmoteItem is on the Controller, not Pawn
+                        AFortPlayerControllerAthena* PC = (AFortPlayerControllerAthena*)Context.Controller;
+                        PC->ServerPlayEmoteItem(Emote, UKismetMathLibrary::RandomFloatInRange(0.f, 1.f));
                         return EBTNodeResult::Succeeded;
                     }
                 }

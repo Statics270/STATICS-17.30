@@ -250,7 +250,7 @@ namespace FortPlayerPawn {
 
         // Reset any blocking flags on the pawn's ability system
         if (Pawn->AbilitySystemComponent) {
-            Pawn->AbilitySystemComponent->ClearAbilityInput(FName());
+            Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
         }
 
         return OnReloadOG(a1, RemoveCount);

@@ -70,8 +70,10 @@ namespace AbilitySystemComponent {
             if (PC->IsInAircraft())
             {
                 // Allow consumables and reload even in aircraft
-                if (AbilityToActivate && !AbilityToActivate->IsA(UFortGameplayAbilityConsumable::StaticClass()) &&
-                    !AbilityToActivate->GetClass()->GetName().contains("Reload"))
+                std::string AbilityName = AbilityToActivate ? AbilityToActivate->GetClass()->GetName() : "";
+                if (AbilityToActivate && !AbilityName.contains("Consumable") &&
+                    !AbilityName.contains("Reload") &&
+                    !AbilityName.contains("GA_Athena_Heal"))
                 {
                     AbilitySystemComponent->ClientActivateAbilityFailed(Handle, PredictionKey.Current);
                     return;
@@ -101,10 +103,10 @@ namespace AbilitySystemComponent {
         // Ensure we're not blocking consumables unnecessarily
         AFortPlayerPawnAthena* Pawn = (AFortPlayerPawnAthena*)PC->Pawn;
 
-        // Reset any blocked state flags
+        // Reset any blocked state flags by clearing active gameplay effects
         if (Pawn->AbilitySystemComponent)
         {
-            Pawn->AbilitySystemComponent->CancelAllAbilities(nullptr);
+            Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
         }
 
         return ConsumeItemOG(PC, ItemEntry);

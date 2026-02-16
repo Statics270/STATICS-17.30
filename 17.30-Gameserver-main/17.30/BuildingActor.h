@@ -31,7 +31,7 @@ namespace BuildingActor {
 
         // Clear any blocking states before pickup
         if (Pawn->AbilitySystemComponent) {
-            Pawn->AbilitySystemComponent->ClearAbilityInput(FName());
+            Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
         }
 
         Pawn->ServerHandlePickup(Pickup, 0.3f, FVector(), true);
