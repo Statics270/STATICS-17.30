@@ -1,5 +1,6 @@
 #pragma once
 #include "framework.h"
+#include "QuestSystem.h"
 
 namespace Looting {
     static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootTierData)

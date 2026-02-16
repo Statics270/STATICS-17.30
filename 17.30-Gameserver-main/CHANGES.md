@@ -1,7 +1,14 @@
 # 17.30-Gameserver - Feature Implementation Summary
 
 ## Overview
-This document summarizes the implementation of advanced features for the 17.30-Gameserver project, including fixes for action blocking, advanced bot behaviors, and vehicle radio/music functionality.
+This document summarizes the implementation of advanced features for the 17.30-Gameserver project, including fixes for action blocking, bot AI improvements, C2S7 quest/XP system, advanced bot behaviors, and vehicle radio/music functionality.
+
+## Table of Contents
+1. [Bot AI Fixes](#4-bot-ai-fixes-c2s7-invasion-update)
+2. [C2S7 Quest/XP System](#5-c2s7-questxp-system)
+3. [Action Blocking Fixes](#1-action-blocking-fixes)
+4. [Advanced Bot Behavior](#2-advanced-bot-behavior)
+5. [Vehicle Radio/Music](#3-vehicle-radiomusic)
 
 ## 1. Action Blocking Fixes
 
@@ -190,6 +197,150 @@ Potential areas for expansion:
 5. Voice line integration for bots
 6. Radio station management UI
 
+## 4. Bot AI Fixes (C2S7 Invasion Update)
+
+### New Files:
+- `BotFixes.h` - Comprehensive bot AI fixes system
+
+### Files Modified:
+- `FortAthenaAIBotController.h` - Integrated bot fixes and quest tracking
+- `NetDriver.h` - Added bot fixes ticking during network updates
+- `Globals.h` - Added feature flags for bot fixes
+
+### Bot Issues Fixed:
+
+#### Bot Not Leaving Bus / Immobile
+- **Proper bus exit logic**: Bots now correctly detect when the aircraft is unlocked and jump at randomized intervals
+- **Blackboard state management**: Correctly sets `HasEverJumpedFromBusKey` and `IsInBus` flags
+- **Teleport to aircraft**: Bots are properly teleported to aircraft location before skydiving
+- **Landing detection**: Properly tracks when bots have landed and transitions to ground behavior
+
+#### Bot Damage Issues
+- **Invulnerability fix**: Ensures `bIsInvulnerable` is set to false for all bots
+- **Health initialization**: Bots spawn with proper health (100 HP) and shield (0)
+- **Ability system clearing**: Clears blocking gameplay effects that prevent damage
+
+#### Bot Stuck Detection
+- **Movement tracking**: Monitors bot position every 2 seconds to detect stuck states
+- **Auto-unstuck**: Automatically attempts to free stuck bots by jumping and moving in random directions
+- **Stuck counter**: Tracks consecutive stuck detections before triggering unstuck behavior
+
+#### Bot Combat Improvements
+- **Enemy detection**: Scans for enemy players within 5000 units
+- **Weapon switching**: Automatically switches from pickaxe to ranged weapons when engaging
+- **Aim tracking**: Sets focal point on targets for accurate aiming
+- **Range-based behavior**: Moves closer when too far, fires when in range (1500 units)
+
+#### Bot Action Fixes
+- **Consumables**: Bots can now use healing items when health is low
+- **Reload**: Bots properly reload weapons when ammo is depleted
+- **Chest interaction**: Bots can detect and open nearby chests
+- **Pickup interaction**: Bots can pick up weapons and healing items
+
+### Configuration:
+```cpp
+// Bot Fixes - AI Behavior Improvements
+bool bBotFixesEnabled = true;           // Enable bot movement, combat, and action fixes
+bool bBotBusJumpFix = true;             // Enable proper bot bus jumping
+bool bBotDamageFix = true;              // Enable bot damage taking
+bool bBotStuckDetection = true;         // Enable bot stuck detection and unstuck
+```
+
+## 5. C2S7 Quest/XP System
+
+### New Files:
+- `QuestSystem.h` - Complete C2S7 (Invasion Season) quest and XP system
+
+### Files Modified:
+- `FortAthenaAIBotController.h` - Added quest tracking for eliminations
+- `BuildingActor.h` - Added harvesting quest progress tracking
+- `Looting.h` - Added chest opening quest tracking
+- `NetDriver.h` - Added quest system ticking and game phase change handling
+- `Globals.h` - Added feature flags for quest system
+
+### Features Implemented:
+
+#### Quest Types
+- **Weekly Quests**: Invasion-themed weekly challenges (e.g., "Eliminate Alien Invaders")
+- **Daily Quests**: Rotating daily objectives (e.g., "Eliminate opponents", "Outlast players")
+- **Battle Pass Quests**: Season-level challenges for Battle Pass progression
+
+#### XP Rewards System
+- **Elimination XP**: 150 XP per elimination
+- **Assist XP**: 75 XP per assist
+- **Victory Royale**: 2500 XP for winning
+- **Placement XP**: 500 XP for Top 10, 250 XP for Top 25
+- **Chest Opening**: 130 XP per chest
+- **Ammo Box**: 85 XP per ammo box
+- **Harvesting**: 10 XP per resource gathered
+- **Survival Time**: 17 XP per minute survived
+- **First Blood**: 150 XP bonus for first elimination
+
+#### C2S7 Week 1 Quests
+1. **First Contact** - Eliminate Alien Invaders (5 eliminations) - 30,000 XP + 5 Battle Stars
+2. **Resource Gathering** - Harvest building materials (1000) - 24,000 XP + 3 Battle Stars
+3. **Treasure Hunter** - Open chests at Named Locations (10) - 24,000 XP + 3 Battle Stars
+
+#### C2S7 Week 2 Quests
+1. **Defense Protocol** - Deal damage to opponents (5000) - 30,000 XP + 5 Battle Stars
+
+### Quest Objective Types
+- Eliminations
+- Damage Dealt
+- Chests Opened
+- Games Played
+- Victory Royales
+- Harvesting
+- Building
+- Distance Traveled
+- Consumables Used
+- Weapons Collected
+- POI Visited
+
+### Integration Points:
+- **Eliminations**: Tracked in `OnPossessedPawnDied`
+- **Harvesting**: Tracked in `BuildingActor::OnDamageServer`
+- **Chest Opening**: Tracked in `BotFixes::UpdateBotInteraction`
+- **Survival Time**: Ticked in `NetDriver::TickFlush`
+- **Game Phase**: Tracked via `QuestSystem::OnGamePhaseChanged`
+
+### Configuration:
+```cpp
+// Quest System - C2S7 Integration
+bool bQuestSystemEnabled = true;        // Enable C2S7 quest system
+bool bDailyQuestsEnabled = true;        // Enable daily quests
+bool bWeeklyQuestsEnabled = true;       // Enable weekly quests (C2S7 Invasion)
+bool bBattlePassQuestsEnabled = true;   // Enable battle pass challenges
+bool bXPAwardsEnabled = true;           // Enable XP awards for actions
+```
+
+## 6. Action Blocking Fixes (Enhanced)
+
+### Additional Fixes:
+
+#### Grenade Throwing
+- Added "Grenade" to allowed abilities while in aircraft
+- Prevents ability system from blocking grenade throws
+
+#### Interact Key
+- Added "Interact" and "Use" to allowed abilities while in aircraft
+- Ensures chests, doors, and other interactables work properly
+
+#### Ability System State Clearing
+- Clears `SetUserAbilityActivationInhibited` before attempting ability activation
+- Ensures no residual blocking states prevent actions
+
+### Configuration:
+```cpp
+// Action Blocking Fixes
+bool bConsumablesFix = true;            // Enable consumables action fix
+bool bReloadFix = true;                 // Enable reload action fix
+bool bGrenadesFix = true;               // Enable grenades action fix
+bool bInteractFix = true;               // Enable interact key fix
+bool bChestsFix = true;                 // Enable chest opening fix
+bool bHarvestingFix = true;             // Enable harvesting fix
+```
+
 ## Notes
 
 - All features are opt-in via global flags
@@ -197,3 +348,5 @@ Potential areas for expansion:
 - Proper cleanup and state management prevents memory leaks
 - Compatible with existing bot spawning systems
 - No breaking changes to existing functionality
+- Bot fixes and quest system are integrated but can be disabled independently
+- All quest progress is tracked per-match (not persisted)

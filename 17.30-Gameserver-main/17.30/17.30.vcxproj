@@ -139,11 +139,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AbilitySystemComponent.h" />
+    <ClInclude Include="AdvancedBotBehavior.h" />
     <ClInclude Include="BehaviorTreeDecorators.h" />
     <ClInclude Include="BehaviorTreeEvaluators.h" />
     <ClInclude Include="BehaviorTreeServices.h" />
     <ClInclude Include="BehaviorTreeSystem.h" />
     <ClInclude Include="BehaviorTreeTasks.h" />
+    <ClInclude Include="BotFixes.h" />
     <ClInclude Include="BotsSpawner.h" />
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="FortAthenaAIBotController.h" />
@@ -159,6 +161,7 @@
     <ClInclude Include="NpcAI.h" />
     <ClInclude Include="PhoebeDisplayNames.h" />
     <ClInclude Include="PlayerBots.h" />
+    <ClInclude Include="QuestSystem.h" />
     <ClInclude Include="SDK\PropertyFixup.hpp" />
     <ClInclude Include="SDK\SDK.hpp" />
     <ClInclude Include="SDK\SDK\AIModule_classes.hpp" />

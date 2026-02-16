@@ -65,22 +65,31 @@ namespace AbilitySystemComponent {
 
         AActor* OwnerActor = AbilitySystemComponent->GetOwner();
 
-        // Only block aircraft-specific abilities while in aircraft, allow consumables/reload
+        // Only block aircraft-specific abilities while in aircraft, allow consumables/reload/grenades/interact
         if (OwnerActor && OwnerActor->IsA(AFortPlayerControllerAthena::StaticClass()))
         {
             AFortPlayerControllerAthena* PC = (AFortPlayerControllerAthena*)OwnerActor;
             if (PC->IsInAircraft())
             {
-                // Allow consumables and reload even in aircraft
+                // Allow essential abilities even in aircraft
                 std::string AbilityName = AbilityToActivate ? AbilityToActivate->GetFullName() : "";
-                if (AbilityToActivate && AbilityName.find("Consumable") == std::string::npos &&
+                if (AbilityToActivate && 
+                    AbilityName.find("Consumable") == std::string::npos &&
                     AbilityName.find("Reload") == std::string::npos &&
-                    AbilityName.find("GA_Athena_Heal") == std::string::npos)
+                    AbilityName.find("GA_Athena_Heal") == std::string::npos &&
+                    AbilityName.find("Grenade") == std::string::npos &&
+                    AbilityName.find("Interact") == std::string::npos &&
+                    AbilityName.find("Use") == std::string::npos)
                 {
                     AbilitySystemComponent->ClientActivateAbilityFailed(Handle, PredictionKey.Current);
                     return;
                 }
             }
+        }
+
+        // Clear any blocking states before attempting activation
+        if (AbilitySystemComponent) {
+            AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
         }
 
         UGameplayAbility* InstancedAbility = nullptr;

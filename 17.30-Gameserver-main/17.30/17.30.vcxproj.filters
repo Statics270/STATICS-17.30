@@ -132,6 +132,15 @@
     <ClInclude Include="BehaviorTreeTasks.h">
       <Filter>Resources\AI\BehaviorTree</Filter>
     </ClInclude>
+    <ClInclude Include="AdvancedBotBehavior.h">
+      <Filter>Resources\AI\Phoebe</Filter>
+    </ClInclude>
+    <ClInclude Include="BotFixes.h">
+      <Filter>Resources\AI\Phoebe</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
