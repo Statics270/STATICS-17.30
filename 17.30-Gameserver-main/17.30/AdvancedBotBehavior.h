@@ -3,7 +3,12 @@
 #include "BehaviorTreeSystem.h"
 #include "BehaviorTreeTasks.h"
 #include "BehaviorTreeDecorators.h"
-#include "PlayerBots.h"
+#include <map>
+
+// Forward declaration to avoid circular include
+namespace PlayerBots {
+    class PhoebeBot;
+}
 
 namespace AdvancedBotBehavior {
     // POI-based bot spawning
@@ -33,9 +38,9 @@ namespace AdvancedBotBehavior {
             FVector Location = Actor->K2_GetActorLocation();
 
             // Look for common POI naming patterns
-            if (ActorName.contains("POI") || ActorName.contains("Location") ||
-                ActorName.contains("Tomb") || ActorName.contains("Compound") ||
-                ActorName.contains("Base") || ActorName.contains("Camp")) {
+            if (ActorName.find("POI") != std::string::npos || ActorName.find("Location") != std::string::npos ||
+                ActorName.find("Tomb") != std::string::npos || ActorName.find("Compound") != std::string::npos ||
+                ActorName.find("Base") != std::string::npos || ActorName.find("Camp") != std::string::npos) {
 
                 std::string POIName = ActorName;
 
@@ -88,14 +93,14 @@ namespace AdvancedBotBehavior {
         }
 
         // Find POIs with available bot slots
-        std::vector<POISpawnPoint*> AvailablePOIs;
-        for (auto& POI : POISpawnPoints) {
-            if (POI.CurrentBots < POI.MaxBots) {
-                AvailablePOIs.push_back(&POI);
+        std::vector<size_t> AvailablePOIIndices;
+        for (size_t i = 0; i < POISpawnPoints.size(); i++) {
+            if (POISpawnPoints[i].CurrentBots < POISpawnPoints[i].MaxBots) {
+                AvailablePOIIndices.push_back(i);
             }
         }
 
-        if (AvailablePOIs.empty()) {
+        if (AvailablePOIIndices.empty()) {
             // Random fallback location
             if (!BuildingFoundations.empty()) {
                 return BuildingFoundations[UKismetMathLibrary::RandomIntegerInRange(0, BuildingFoundations.Num() - 1)]->K2_GetActorLocation();
@@ -104,11 +109,11 @@ namespace AdvancedBotBehavior {
         }
 
         // Select random POI
-        POISpawnPoint* SelectedPOI = AvailablePOIs[UKismetMathLibrary::RandomIntegerInRange(0, AvailablePOIs.size() - 1)];
-        SelectedPOI->CurrentBots++;
+        size_t SelectedIndex = AvailablePOIIndices[UKismetMathLibrary::RandomIntegerInRange(0, AvailablePOIIndices.size() - 1)];
+        POISpawnPoints[SelectedIndex].CurrentBots++;
 
         // Add some randomness to location within POI
-        FVector SpawnLoc = SelectedPOI->Location;
+        FVector SpawnLoc = POISpawnPoints[SelectedIndex].Location;
         SpawnLoc.X += UKismetMathLibrary::RandomFloatInRange(-1000, 1000);
         SpawnLoc.Y += UKismetMathLibrary::RandomFloatInRange(-1000, 1000);
 
@@ -521,9 +526,9 @@ namespace AdvancedBotBehavior {
         Tree->AllNodes.push_back(CombatSelector);
 
         // Insert after warmup check
-        if (RootSelector->Children.size() > 1) {
-            RootSelector->Children.insert(RootSelector->Children.begin() + 1, CombatSelector);
-            RootSelector->Children.insert(RootSelector->Children.begin() + 2, WarmupSelector);
+        if (RootSelector->GetChildCount() > 1) {
+            RootSelector->InsertChild(1, CombatSelector);
+            RootSelector->InsertChild(2, WarmupSelector);
         }
     }
 

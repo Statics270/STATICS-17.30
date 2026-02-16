@@ -96,6 +96,14 @@ public:
         Children.push_back(Node);
     }
 
+    void InsertChild(size_t Index, BTNode* Node) {
+        Children.insert(Children.begin() + Index, Node);
+    }
+
+    size_t GetChildCount() const {
+        return Children.size();
+    }
+
     void AddDecorator(BTDecorator* Decorator) {
         Decorators.push_back(Decorator);
     }
