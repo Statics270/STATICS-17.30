@@ -6,11 +6,6 @@
 #include "BotsSpawner.h"
 #include <map>
 
-// Forward declaration to avoid circular include
-namespace PlayerBots {
-    class PhoebeBot;
-}
-
 namespace AdvancedBotBehavior {
     // POI-based bot spawning
     struct POISpawnPoint {
@@ -462,8 +457,6 @@ namespace AdvancedBotBehavior {
     };
 
     // Update the player bots behavior tree to include advanced behaviors
-    void EnhancePlayerBotBehaviorTree(PlayerBots::PhoebeBot* Bot);
-
     void Initialize() {
         Log("Initializing Advanced Bot Behavior System...");
         InitializePOISystem();
