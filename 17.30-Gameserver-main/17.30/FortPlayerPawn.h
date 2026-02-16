@@ -248,6 +248,11 @@ namespace FortPlayerPawn {
 
         FortInventory::Update(PC, WeaponItemEntry);
 
+        // Reset any blocking flags on the pawn's ability system
+        if (Pawn->AbilitySystemComponent) {
+            Pawn->AbilitySystemComponent->ClearAbilityInput(FName());
+        }
+
         return OnReloadOG(a1, RemoveCount);
     }
 

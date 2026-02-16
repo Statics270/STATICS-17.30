@@ -8,6 +8,8 @@
 #include "NetDriver.h"
 #include "FortAthenaAIBotController.h"
 #include "Misc.h"
+#include "Vehicles.h"
+#include "AdvancedBotBehavior.h"
 
 void InitConsole() {
     AllocConsole();
@@ -79,6 +81,9 @@ DWORD Main(LPVOID) {
     WaitForLogin();
 
     Hook();
+
+    // Initialize advanced bot behavior system
+    AdvancedBotBehavior::Initialize();
 
     *(bool*)(ImageBase + 0x973E49B) = false; //GIsClient
     *(bool*)(ImageBase + 0x973E49C) = true; //GIsServer

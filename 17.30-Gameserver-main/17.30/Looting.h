@@ -351,6 +351,9 @@ namespace Looting {
             SpawnSource = EFortPickupSpawnSource::AmmoBox;
         }
 
+        // Ensure container is properly replicated
+        BuildingContainer->SetReplicates(true);
+
         if (ClassName.contains("Tiered_Chest"))
         {
             auto LootDrops = PickLootDrops(SearchLootTierGroup);
@@ -359,7 +362,10 @@ namespace Looting {
 
             for (auto& LootDrop : LootDrops)
             {
-                SpawnPickup(LootDrop.ItemDefinition, LootDrop.Count, LootDrop.LoadedAmmo, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+                AFortPickup* Pickup = SpawnPickup(LootDrop.ItemDefinition, LootDrop.Count, LootDrop.LoadedAmmo, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+                if (Pickup) {
+                    Pickup->SetReplicateMovement(true);
+                }
             }
 
             static auto Wood = StaticLoadObject<UFortItemDefinition>("/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
@@ -368,8 +374,11 @@ namespace Looting {
 
             UFortItemDefinition* Mats = (rand() % 40 > 20) ? ((rand() % 20 > 10) ? Wood : Stone) : Metal;
 
-            SpawnPickup(Mats, 30, 0, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
-            SpawnPickup(Bars, UKismetMathLibrary::GetDefaultObj()->RandomIntegerInRange(1, 30), 0, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+            AFortPickup* MatPickup = SpawnPickup(Mats, 30, 0, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+            if (MatPickup) MatPickup->SetReplicateMovement(true);
+
+            AFortPickup* BarPickup = SpawnPickup(Bars, UKismetMathLibrary::GetDefaultObj()->RandomIntegerInRange(1, 30), 0, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+            if (BarPickup) BarPickup->SetReplicateMovement(true);
 
             return true;
         }
@@ -383,7 +392,8 @@ namespace Looting {
             {
                 if (LootDrop.Count > 0)
                 {
-                    SpawnPickup(LootDrop.ItemDefinition, LootDrop.Count, LootDrop.LoadedAmmo, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+                    AFortPickup* Pickup = SpawnPickup(LootDrop.ItemDefinition, LootDrop.Count, LootDrop.LoadedAmmo, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+                    if (Pickup) Pickup->SetReplicateMovement(true);
 
                     if (SearchLootTierGroup == Loot_AthenaFloorLoot || SearchLootTierGroup == Loot_AthenaFloorLoot_Warmup)
                     {
@@ -396,7 +406,8 @@ namespace Looting {
 
                         if (AmmoDef && LootDrop.ItemDefinition != AmmoDef && AmmoDef->DropCount > 0)
                         {
-                            SpawnPickup(AmmoDef, AmmoDef->DropCount, 0, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+                            AFortPickup* AmmoPickup = SpawnPickup(AmmoDef, AmmoDef->DropCount, 0, CorrectLocation, PickupSourceTypeFlags, SpawnSource);
+                            if (AmmoPickup) AmmoPickup->SetReplicateMovement(true);
                         }
                     }
                 }
@@ -407,36 +418,36 @@ namespace Looting {
         return true;
     }
 
-	void SpawnFloorLoot()
-	{
-		auto Statics = (UGameplayStatics*)UGameplayStatics::StaticClass()->DefaultObject;
+    void SpawnFloorLoot()
+    {
+        auto Statics = (UGameplayStatics*)UGameplayStatics::StaticClass()->DefaultObject;
 
-		TArray<AActor*> FloorLootSpawners;
-		UClass* SpawnerClass = StaticLoadObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
-		Statics->GetAllActorsOfClass(UWorld::GetWorld(), SpawnerClass, &FloorLootSpawners);
+        TArray<AActor*> FloorLootSpawners;
+        UClass* SpawnerClass = StaticLoadObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
+        Statics->GetAllActorsOfClass(UWorld::GetWorld(), SpawnerClass, &FloorLootSpawners);
 
-		for (size_t i = 0; i < FloorLootSpawners.Num(); i++)
-		{
-			FloorLootSpawners[i]->K2_DestroyActor();
-		}
+        for (size_t i = 0; i < FloorLootSpawners.Num(); i++)
+        {
+            FloorLootSpawners[i]->K2_DestroyActor();
+        }
 
-		FloorLootSpawners.Free();
+        FloorLootSpawners.Free();
 
-		SpawnerClass = StaticLoadObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
-		Statics->GetAllActorsOfClass(UWorld::GetWorld(), SpawnerClass, &FloorLootSpawners);
+        SpawnerClass = StaticLoadObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
+        Statics->GetAllActorsOfClass(UWorld::GetWorld(), SpawnerClass, &FloorLootSpawners);
 
-		for (size_t i = 0; i < FloorLootSpawners.Num(); i++)
-		{
-			FloorLootSpawners[i]->K2_DestroyActor();
-		}
+        for (size_t i = 0; i < FloorLootSpawners.Num(); i++)
+        {
+            FloorLootSpawners[i]->K2_DestroyActor();
+        }
 
-		FloorLootSpawners.Free();
-	}
+        FloorLootSpawners.Free();
+    }
 
-	void HookAll()
-	{
-		MH_CreateHook(reinterpret_cast<void*>(ImageBase + 0x498C198), SpawnLoot, nullptr);
+    void HookAll()
+    {
+        MH_CreateHook(reinterpret_cast<void*>(ImageBase + 0x498C198), SpawnLoot, nullptr);
 
-		Log("Looting Hooked!");
-	}
+        Log("Looting Hooked!");
+    }
 }
