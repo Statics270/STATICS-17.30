@@ -316,14 +316,14 @@ namespace QuestSystem {
 
         if (Killer && bIsElimination) {
             auto* KillerProgress = GetOrCreatePlayerProgress(Killer);
-            
+
             // Award elimination XP
-            AwardXP(Killer, XP_PER_ELIMINATION, "Elimination");
-            
+            AwardXP(Killer, XP_PER_ELIMINATION, FString(L"Elimination"));
+
             // Check for first blood
             if (!KillerProgress->bFirstBlood) {
                 KillerProgress->bFirstBlood = true;
-                AwardXP(Killer, XP_FIRST_BLOOD, "First Blood");
+                AwardXP(Killer, XP_FIRST_BLOOD, FString(L"First Blood"));
             }
 
             // Update quest progress
@@ -388,7 +388,9 @@ namespace QuestSystem {
 
         if (bAllObjectivesComplete && !Quest.bCompleted) {
             Quest.bCompleted = true;
-            AwardXP(Progress->Controller, Quest.XPReward, "Quest Completed: " + Quest.DisplayName.ToString());
+            FString Reason = FString(L"Quest Completed: ");
+            Reason += Quest.DisplayName;
+            AwardXP(Progress->Controller, Quest.XPReward, Reason);
             Log("Quest Completed: " + Quest.DisplayName.ToString());
         }
     }
@@ -396,14 +398,14 @@ namespace QuestSystem {
     void OnChestOpened(AFortPlayerControllerAthena* Controller) {
         if (!Controller) return;
 
-        AwardXP(Controller, XP_CHEST_OPENED, "Chest Opened");
+        AwardXP(Controller, XP_CHEST_OPENED, FString(L"Chest Opened"));
         UpdateQuestProgress(Controller, EQuestObjectiveType::ChestsOpened);
     }
 
     void OnHarvesting(AFortPlayerControllerAthena* Controller) {
         if (!Controller) return;
 
-        AwardXP(Controller, XP_HARVESTING, "Harvesting");
+        AwardXP(Controller, XP_HARVESTING, FString(L"Harvesting"));
         UpdateQuestProgress(Controller, EQuestObjectiveType::Harvesting);
     }
 
@@ -428,12 +430,12 @@ namespace QuestSystem {
         LastSurvivalTick = CurrentTime;
 
         AFortGameStateAthena* GameState = (AFortGameStateAthena*)UWorld::GetWorld()->GameState;
-        if (!GameState || GameState->GamePhase != EAthenaGamePhase::Gameplay) return;
+        if (!GameState || GameState->GamePhase != EAthenaGamePhase::SafeZones) return;
 
         for (auto* Progress : PlayerProgress) {
             if (Progress && Progress->Controller && Progress->Controller->MyFortPawn) {
                 if (Progress->Controller->MyFortPawn->GetHealth() > 0) {
-                    AwardXP(Progress->Controller, XP_SURVIVAL_MINUTE, "Survival Time");
+                    AwardXP(Progress->Controller, XP_SURVIVAL_MINUTE, FString(L"Survival Time"));
                 }
             }
         }
@@ -451,12 +453,12 @@ namespace QuestSystem {
 
     void OnPlayerWonVictoryRoyale(AFortPlayerControllerAthena* Controller) {
         if (!Controller) return;
-        
-        AwardXP(Controller, XP_VICTORY_ROYALE, "Victory Royale!");
+
+        AwardXP(Controller, XP_VICTORY_ROYALE, FString(L"Victory Royale!"));
         UpdateQuestProgress(Controller, EQuestObjectiveType::VictoryRoyales);
 
         // Check for placement XP
-        AwardXP(Controller, XP_TOP_10, "Top 10 Finish");
+        AwardXP(Controller, XP_TOP_10, FString(L"Top 10 Finish"));
     }
 
     void HookAll() {
