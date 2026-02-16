@@ -67,7 +67,7 @@ namespace AdvancedBotBehavior {
         }
 
         // Add manual POIs if none found
-        if (POISpawnPoints.empty()) {
+        if (SDKUtils::empty(POISpawnPoints)) {
             // Fallback to player start locations as POIs
             UGameplayStatics::GetAllActorsOfClass(UWorld::GetWorld(), AFortPlayerStartWarmup::StaticClass(), &AllActors);
             int BotsPerPOI = 5;
@@ -88,7 +88,7 @@ namespace AdvancedBotBehavior {
     }
 
     FVector GetPOISpawnLocation() {
-        if (POISpawnPoints.empty()) {
+        if (SDKUtils::empty(POISpawnPoints)) {
             InitializePOISystem();
         }
 
@@ -100,9 +100,9 @@ namespace AdvancedBotBehavior {
             }
         }
 
-        if (AvailablePOIIndices.empty()) {
+        if (SDKUtils::empty(AvailablePOIIndices)) {
             // Random fallback location
-            if (!BuildingFoundations.empty()) {
+            if (!SDKUtils::empty(BuildingFoundations)) {
                 return BuildingFoundations[UKismetMathLibrary::RandomIntegerInRange(0, BuildingFoundations.Num() - 1)]->K2_GetActorLocation();
             }
             return FVector();
@@ -135,7 +135,7 @@ namespace AdvancedBotBehavior {
         // Use a player start at the POI location
         AFortPlayerStartWarmup* SpawnPoint = nullptr;
         for (auto* Start : PlayerStarts) {
-            if (Start && FVector::Dist(Start->K2_GetActorLocation(), SpawnLoc) < 5000.f) {
+            if (Start && SDKUtils::Dist(Start->K2_GetActorLocation(), SpawnLoc) < 5000.f) {
                 SpawnPoint = (AFortPlayerStartWarmup*)Start;
                 break;
             }
@@ -181,7 +181,7 @@ namespace AdvancedBotBehavior {
                 AFortPickup* Pickup = Cast<AFortPickup>(Actor);
                 if (!Pickup || Pickup->bPickedUp) continue;
 
-                float Dist = FVector::Dist(BotLoc, Pickup->K2_GetActorLocation());
+                float Dist = SDKUtils::Dist(BotLoc, Pickup->K2_GetActorLocation());
                 if (Dist < BestDist) {
                     BestDist = Dist;
                     BestPickup = Pickup;
@@ -237,9 +237,9 @@ namespace AdvancedBotBehavior {
                 AFortPlayerPawnAthena* EnemyPawn = Cast<AFortPlayerPawnAthena>(Actor);
                 if (!EnemyPawn || EnemyPawn == BotPawn) continue;
                 if (!EnemyPawn->PlayerState) continue;
-                if (EnemyPawn->PlayerState->bIsABot && EnemyPawn->PlayerState->GetTeam() == BotPawn->PlayerState->GetTeam()) continue;
+                if (EnemyPawn->PlayerState->bIsABot && SDKUtils::GetTeam(EnemyPawn->PlayerState) == SDKUtils::GetTeam(BotPawn->PlayerState)) continue;
 
-                float Dist = FVector::Dist(BotLoc, EnemyPawn->K2_GetActorLocation());
+                float Dist = SDKUtils::Dist(BotLoc, EnemyPawn->K2_GetActorLocation());
                 if (Dist < BestDist) {
                     BestDist = Dist;
                     Target = EnemyPawn;
@@ -315,10 +315,10 @@ namespace AdvancedBotBehavior {
                 if (!EnemyPawn || EnemyPawn == BotPawn) continue;
                 if (!EnemyPawn->PlayerState || EnemyPawn->PlayerState->bIsABot) continue;
 
-                float Dist = FVector::Dist(BotLoc, EnemyPawn->K2_GetActorLocation());
+                float Dist = SDKUtils::Dist(BotLoc, EnemyPawn->K2_GetActorLocation());
                 if (Dist < EnemyRange) {
                     bEnemyNearby = true;
-                    EnemyDir = (EnemyPawn->K2_GetActorLocation() - BotLoc).GetSafeNormal();
+                    EnemyDir = SDKUtils::GetSafeNormal(EnemyPawn->K2_GetActorLocation() - BotLoc);
                     break;
                 }
             }
@@ -364,7 +364,7 @@ namespace AdvancedBotBehavior {
             }
 
             AFortPlayerStateAthena* PlayerState = Context.PlayerState;
-            if (!PlayerState || !PlayerState->CosmeticLoadout.Dances.Num()) {
+            if (!PlayerState || SDKUtils::empty(Dances)) {
                 return EBTNodeResult::Failed;
             }
 
@@ -385,9 +385,9 @@ namespace AdvancedBotBehavior {
                 );
 
                 if (bEmoteAllowed) {
-                    // Play random emote
-                    int EmoteIndex = UKismetMathLibrary::RandomIntegerInRange(0, PlayerState->CosmeticLoadout.Dances.Num() - 1);
-                    UAthenaDanceItemDefinition* Emote = PlayerState->CosmeticLoadout.Dances[EmoteIndex];
+                    // Play random emote from global dances array
+                    int EmoteIndex = UKismetMathLibrary::RandomIntegerInRange(0, Dances.size() - 1);
+                    UAthenaDanceItemDefinition* Emote = Dances[EmoteIndex];
 
                     if (Emote && Context.Controller) {
                         // ServerPlayEmoteItem is on the Controller, not Pawn

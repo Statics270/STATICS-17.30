@@ -72,7 +72,7 @@ namespace AbilitySystemComponent {
             if (PC->IsInAircraft())
             {
                 // Allow consumables and reload even in aircraft
-                std::string AbilityName = AbilityToActivate ? AbilityToActivate->GetClass()->GetName() : "";
+                std::string AbilityName = AbilityToActivate ? AbilityToActivate->GetFullName() : "";
                 if (AbilityToActivate && AbilityName.find("Consumable") == std::string::npos &&
                     AbilityName.find("Reload") == std::string::npos &&
                     AbilityName.find("GA_Athena_Heal") == std::string::npos)

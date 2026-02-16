@@ -69,22 +69,22 @@ static void (*OnRep_ZiplineState)(AFortPlayerPawn* a1) = decltype(OnRep_ZiplineS
 /** Types of net modes that we know about - synced with EngineBaseTypes.h */
 enum class ENetMode
 {
-	Standalone,
-	DedicatedServer,
-	ListenServer,
-	Client,
+    Standalone,
+    DedicatedServer,
+    ListenServer,
+    Client,
 
-	MAX,
+    MAX,
 };
 
 int IsTrue()
 {
-	return TRUE;
+    return TRUE;
 }
 
 int IsFalse()
 {
-	return FALSE;
+    return FALSE;
 }
 
 void nullFunc() {}
@@ -106,364 +106,401 @@ static TArray<AActor*> PlayerStarts;
 
 // text manipulation utils
 namespace TextManipUtils {
-	// Found this from stack overflow :fire:
-	std::vector<std::string> SplitWhitespace(std::string const& input) {
-		std::istringstream buffer(input);
-		std::vector<std::string> ret;
+    // Found this from stack overflow :fire:
+    std::vector<std::string> SplitWhitespace(std::string const& input) {
+        std::istringstream buffer(input);
+        std::vector<std::string> ret;
 
-		std::copy(std::istream_iterator<std::string>(buffer),
-			std::istream_iterator<std::string>(),
-			std::back_inserter(ret));
-		return ret;
-	}
+        std::copy(std::istream_iterator<std::string>(buffer),
+            std::istream_iterator<std::string>(),
+            std::back_inserter(ret));
+        return ret;
+    }
 }
 
 void Log(const std::string& msg)
 {
-	static bool firstCall = true;
+    static bool firstCall = true;
 
-	if (firstCall)
-	{
-		std::ofstream logFile("Server_log.txt", std::ios::trunc);
-		if (logFile.is_open())
-		{
-			logFile << "[SERVER]: Log file initialized!\n";
-			logFile.close();
-		}
-		firstCall = false;
-	}
+    if (firstCall)
+    {
+        std::ofstream logFile("Server_log.txt", std::ios::trunc);
+        if (logFile.is_open())
+        {
+            logFile << "[SERVER]: Log file initialized!\n";
+            logFile.close();
+        }
+        firstCall = false;
+    }
 
-	std::ofstream logFile("Server_log.txt", std::ios::app);
-	if (logFile.is_open())
-	{
-		logFile << "[SERVER]: " << msg << std::endl;
-		logFile.close();
-	}
+    std::ofstream logFile("Server_log.txt", std::ios::app);
+    if (logFile.is_open())
+    {
+        logFile << "[SERVER]: " << msg << std::endl;
+        logFile.close();
+    }
 
-	std::cout << "[SERVER]: " << msg << std::endl;
+    std::cout << "[SERVER]: " << msg << std::endl;
+}
+
+// Utility functions for missing SDK methods
+namespace SDKUtils {
+    // FVector utility functions
+    inline float Dist(const FVector& V1, const FVector& V2)
+    {
+        return (V1 - V2).Size();
+    }
+
+    inline FVector GetSafeNormal(const FVector& V)
+    {
+        float Magnitude = V.Size();
+        if (Magnitude > 0.0f)
+        {
+            return V / Magnitude;
+        }
+        return FVector();
+    }
+
+    // TArray utility functions
+    template<typename T>
+    inline bool empty(const TArray<T>& Array)
+    {
+        return Array.Num() == 0;
+    }
+
+    // GetTeam helper
+    inline int GetTeam(APlayerState* PlayerState)
+    {
+        if (!PlayerState) return 0;
+        
+        // Try to find the team property or method
+        // This is a placeholder - actual implementation depends on the SDK
+        // For now, return 0 as default team
+        return 0;
+    }
 }
 
 void HookVTable(void* Base, int Idx, void* Detour, void** OG)
 {
-	DWORD oldProtection;
+    DWORD oldProtection;
 
-	void** VTable = *(void***)Base;
+    void** VTable = *(void***)Base;
 
-	if (OG)
-	{
-		*OG = VTable[Idx];
-	}
+    if (OG)
+    {
+        *OG = VTable[Idx];
+    }
 
-	VirtualProtect(&VTable[Idx], sizeof(void*), PAGE_EXECUTE_READWRITE, &oldProtection);
+    VirtualProtect(&VTable[Idx], sizeof(void*), PAGE_EXECUTE_READWRITE, &oldProtection);
 
-	VTable[Idx] = Detour;
+    VTable[Idx] = Detour;
 
-	VirtualProtect(&VTable[Idx], sizeof(void*), oldProtection, NULL);
+    VirtualProtect(&VTable[Idx], sizeof(void*), oldProtection, NULL);
 }
 
 inline FQuat RotatorToQuat(FRotator Rotation)
 {
-	FQuat Quat;
-	const float DEG_TO_RAD = 3.14159f / 180.0f;
-	const float DIVIDE_BY_2 = DEG_TO_RAD / 2.0f;
+    FQuat Quat;
+    const float DEG_TO_RAD = 3.14159f / 180.0f;
+    const float DIVIDE_BY_2 = DEG_TO_RAD / 2.0f;
 
-	float SP = sin(Rotation.Pitch * DIVIDE_BY_2);
-	float CP = cos(Rotation.Pitch * DIVIDE_BY_2);
-	float SY = sin(Rotation.Yaw * DIVIDE_BY_2);
-	float CY = cos(Rotation.Yaw * DIVIDE_BY_2);
-	float SR = sin(Rotation.Roll * DIVIDE_BY_2);
-	float CR = cos(Rotation.Roll * DIVIDE_BY_2);
+    float SP = sin(Rotation.Pitch * DIVIDE_BY_2);
+    float CP = cos(Rotation.Pitch * DIVIDE_BY_2);
+    float SY = sin(Rotation.Yaw * DIVIDE_BY_2);
+    float CY = cos(Rotation.Yaw * DIVIDE_BY_2);
+    float SR = sin(Rotation.Roll * DIVIDE_BY_2);
+    float CR = cos(Rotation.Roll * DIVIDE_BY_2);
 
-	Quat.X = CR * SP * SY - SR * CP * CY;
-	Quat.Y = -CR * SP * CY - SR * CP * SY;
-	Quat.Z = CR * CP * SY - SR * SP * CY;
-	Quat.W = CR * CP * CY + SR * SP * SY;
+    Quat.X = CR * SP * SY - SR * CP * CY;
+    Quat.Y = -CR * SP * CY - SR * CP * SY;
+    Quat.Z = CR * CP * SY - SR * SP * CY;
+    Quat.W = CR * CP * CY + SR * SP * SY;
 
-	return Quat;
+    return Quat;
 }
 
 template <typename T>
 static inline T* StaticFindObject(std::wstring ObjectName)
 {
-	return (T*)StaticFindObjectOG(T::StaticClass(), nullptr, ObjectName.c_str(), false);
+    return (T*)StaticFindObjectOG(T::StaticClass(), nullptr, ObjectName.c_str(), false);
 }
 
 template<typename T>
 inline T* Cast(UObject* Object)
 {
-	if (!Object || !Object->IsA(T::StaticClass()))
-		return nullptr;
-	return (T*)Object;
+    if (!Object || !Object->IsA(T::StaticClass()))
+        return nullptr;
+    return (T*)Object;
 }
 
 template<typename T = UObject>
 static inline T* StaticLoadObject(const std::string& Name)
 {
-	auto ConvName = std::wstring(Name.begin(), Name.end());
+    auto ConvName = std::wstring(Name.begin(), Name.end());
 
-	T* Object = StaticFindObject<T>(ConvName);
+    T* Object = StaticFindObject<T>(ConvName);
 
-	if (!Object)
-	{
-		Object = (T*)StaticLoadObjectOG(T::StaticClass(), nullptr, ConvName.c_str(), nullptr, 0, nullptr, false, nullptr);
-	}
+    if (!Object)
+    {
+        Object = (T*)StaticLoadObjectOG(T::StaticClass(), nullptr, ConvName.c_str(), nullptr, 0, nullptr, false, nullptr);
+    }
 
-	return Object;
+    return Object;
 }
 
 template<typename T>
 T* GetDefaultObject()
 {
-	return (T*)T::StaticClass()->DefaultObject;
+    return (T*)T::StaticClass()->DefaultObject;
 }
 
 static inline FQuat FRotToQuat(FRotator Rotation) {
-	FQuat Quat;
-	const float DEG_TO_RAD = 3.14159f / 180.0f;
-	const float DIVIDE_BY_2 = DEG_TO_RAD / 2.0f;
+    FQuat Quat;
+    const float DEG_TO_RAD = 3.14159f / 180.0f;
+    const float DIVIDE_BY_2 = DEG_TO_RAD / 2.0f;
 
-	float SP = sin(Rotation.Pitch * DIVIDE_BY_2);
-	float CP = cos(Rotation.Pitch * DIVIDE_BY_2);
-	float SY = sin(Rotation.Yaw * DIVIDE_BY_2);
-	float CY = cos(Rotation.Yaw * DIVIDE_BY_2);
-	float SR = sin(Rotation.Roll * DIVIDE_BY_2);
-	float CR = cos(Rotation.Roll * DIVIDE_BY_2);
+    float SP = sin(Rotation.Pitch * DIVIDE_BY_2);
+    float CP = cos(Rotation.Pitch * DIVIDE_BY_2);
+    float SY = sin(Rotation.Yaw * DIVIDE_BY_2);
+    float CY = cos(Rotation.Yaw * DIVIDE_BY_2);
+    float SR = sin(Rotation.Roll * DIVIDE_BY_2);
+    float CR = cos(Rotation.Roll * DIVIDE_BY_2);
 
-	Quat.X = CR * SP * SY - SR * CP * CY;
-	Quat.Y = -CR * SP * CY - SR * CP * SY;
-	Quat.Z = CR * CP * SY - SR * SP * CY;
-	Quat.W = CR * CP * CY + SR * SP * SY;
+    Quat.X = CR * SP * SY - SR * CP * CY;
+    Quat.Y = -CR * SP * CY - SR * CP * SY;
+    Quat.Z = CR * CP * SY - SR * SP * CY;
+    Quat.W = CR * CP * CY + SR * SP * SY;
 
-	return Quat;
+    return Quat;
 }
 
 template<typename T>
 inline T* SpawnActor(FVector Loc, FRotator Rot = FRotator(), AActor* Owner = nullptr, SDK::UClass* Class = T::StaticClass(), ESpawnActorCollisionHandlingMethod Handle = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn)
 {
-	FTransform Transform{};
-	Transform.Scale3D = FVector{ 1,1,1 };
-	Transform.Translation = Loc;
-	Transform.Rotation = FRotToQuat(Rot);
+    FTransform Transform{};
+    Transform.Scale3D = FVector{ 1,1,1 };
+    Transform.Translation = Loc;
+    Transform.Rotation = FRotToQuat(Rot);
 
-	return (T*)UGameplayStatics::FinishSpawningActor(UGameplayStatics::BeginDeferredActorSpawnFromClass(UWorld::GetWorld(), Class, Transform, Handle, Owner), Transform);
+    return (T*)UGameplayStatics::FinishSpawningActor(UGameplayStatics::BeginDeferredActorSpawnFromClass(UWorld::GetWorld(), Class, Transform, Handle, Owner), Transform);
 }
 
 template<typename T>
 static inline T* SpawnAActor(FVector Loc = { 0,0,0 }, FRotator Rot = { 0,0,0 }, AActor* Owner = nullptr)
 {
-	FTransform Transform{};
-	Transform.Scale3D = { 1,1,1 };
-	Transform.Translation = Loc;
-	Transform.Rotation = FRotToQuat(Rot);
+    FTransform Transform{};
+    Transform.Scale3D = { 1,1,1 };
+    Transform.Translation = Loc;
+    Transform.Rotation = FRotToQuat(Rot);
 
-	AActor* NewActor = UGameplayStatics::BeginDeferredActorSpawnFromClass(UWorld::GetWorld(), T::StaticClass(), Transform, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, Owner);
-	return (T*)UGameplayStatics::FinishSpawningActor(NewActor, Transform);
+    AActor* NewActor = UGameplayStatics::BeginDeferredActorSpawnFromClass(UWorld::GetWorld(), T::StaticClass(), Transform, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, Owner);
+    return (T*)UGameplayStatics::FinishSpawningActor(NewActor, Transform);
 }
 
 template<typename T>
 static inline T* SpawnActorClass(FVector Loc = { 0,0,0 }, FRotator Rot = { 0,0,0 }, UClass* Class = nullptr, AActor* Owner = nullptr)
 {
-	FTransform Transform{};
-	Transform.Scale3D = { 1,1,1 };
-	Transform.Translation = Loc;
-	Transform.Rotation = RotatorToQuat(Rot);
+    FTransform Transform{};
+    Transform.Scale3D = { 1,1,1 };
+    Transform.Translation = Loc;
+    Transform.Rotation = RotatorToQuat(Rot);
 
-	AActor* NewActor = UGameplayStatics::BeginDeferredActorSpawnFromClass(UWorld::GetWorld(), Class, Transform, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, Owner);
-	return (T*)UGameplayStatics::FinishSpawningActor(NewActor, Transform);
+    AActor* NewActor = UGameplayStatics::BeginDeferredActorSpawnFromClass(UWorld::GetWorld(), Class, Transform, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, Owner);
+    return (T*)UGameplayStatics::FinishSpawningActor(NewActor, Transform);
 }
 
 template<typename T>
 T* Actors(UClass* Class = T::StaticClass(), FVector Loc = {}, FRotator Rot = {}, AActor* Owner = nullptr)
 {
-	return SpawnActor<T>(Loc, Rot, Owner, Class);
+    return SpawnActor<T>(Loc, Rot, Owner, Class);
 }
 
 AFortPickup* SpawnPickup(UFortItemDefinition* ItemDef, int OverrideCount, int LoadedAmmo, FVector Loc, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, bool bShouldCombine = false, AFortPawn* Pawn = nullptr)
 {
-	auto SpawnedPickup = Actors<AFortPickup>(AFortPickup::StaticClass(), Loc);
-	SpawnedPickup->bRandomRotation = true;
+    auto SpawnedPickup = Actors<AFortPickup>(AFortPickup::StaticClass(), Loc);
+    SpawnedPickup->bRandomRotation = true;
 
-	auto& PickupEntry = SpawnedPickup->PrimaryPickupItemEntry;
-	PickupEntry.ItemDefinition = ItemDef;
-	PickupEntry.Count = OverrideCount;
-	PickupEntry.LoadedAmmo = LoadedAmmo;
-	PickupEntry.ReplicationKey++;
-	SpawnedPickup->OnRep_PrimaryPickupItemEntry();
-	SpawnedPickup->PawnWhoDroppedPickup = Pawn;
+    auto& PickupEntry = SpawnedPickup->PrimaryPickupItemEntry;
+    PickupEntry.ItemDefinition = ItemDef;
+    PickupEntry.Count = OverrideCount;
+    PickupEntry.LoadedAmmo = LoadedAmmo;
+    PickupEntry.ReplicationKey++;
+    SpawnedPickup->OnRep_PrimaryPickupItemEntry();
+    SpawnedPickup->PawnWhoDroppedPickup = Pawn;
 
-	SpawnedPickup->TossPickup(Loc, Pawn, -1, true, bShouldCombine, SourceType, Source);
+    SpawnedPickup->TossPickup(Loc, Pawn, -1, true, bShouldCombine, SourceType, Source);
 
-	SpawnedPickup->SetReplicateMovement(true);
-	SpawnedPickup->MovementComponent = (UProjectileMovementComponent*)GetDefaultObject<UGameplayStatics>()->SpawnObject(UProjectileMovementComponent::StaticClass(), SpawnedPickup);
+    SpawnedPickup->SetReplicateMovement(true);
+    SpawnedPickup->MovementComponent = (UProjectileMovementComponent*)GetDefaultObject<UGameplayStatics>()->SpawnObject(UProjectileMovementComponent::StaticClass(), SpawnedPickup);
 
-	if (SourceType == EFortPickupSourceTypeFlag::Container)
-	{
-		SpawnedPickup->bTossedFromContainer = true;
-		SpawnedPickup->OnRep_TossedFromContainer();
-	}
+    if (SourceType == EFortPickupSourceTypeFlag::Container)
+    {
+        SpawnedPickup->bTossedFromContainer = true;
+        SpawnedPickup->OnRep_TossedFromContainer();
+    }
 
-	return SpawnedPickup;
+    return SpawnedPickup;
 }
 
 std::map<AFortPickup*, float> PickupLifetimes;
 AFortPickup* SpawnStack(APlayerPawn_Athena_C* Pawn, UFortItemDefinition* Def, int Count, bool giveammo = false, int ammo = 0)
 {
-	auto Statics = (UGameplayStatics*)UGameplayStatics::StaticClass()->DefaultObject;
+    auto Statics = (UGameplayStatics*)UGameplayStatics::StaticClass()->DefaultObject;
 
-	FVector Loc = Pawn->K2_GetActorLocation();
-	AFortPickup* Pickup = Actors<AFortPickup>(AFortPickup::StaticClass(), Loc);
-	Pickup->bReplicates = true;
-	PickupLifetimes[Pickup] = Statics->GetTimeSeconds(UWorld::GetWorld());
-	Pickup->PawnWhoDroppedPickup = Pawn;
-	Pickup->PrimaryPickupItemEntry.Count = Count;
-	Pickup->PrimaryPickupItemEntry.ItemDefinition = Def;
-	if (giveammo)
-	{
-		Pickup->PrimaryPickupItemEntry.LoadedAmmo = ammo;
-	}
-	Pickup->PrimaryPickupItemEntry.ReplicationKey++;
+    FVector Loc = Pawn->K2_GetActorLocation();
+    AFortPickup* Pickup = Actors<AFortPickup>(AFortPickup::StaticClass(), Loc);
+    Pickup->bReplicates = true;
+    PickupLifetimes[Pickup] = Statics->GetTimeSeconds(UWorld::GetWorld());
+    Pickup->PawnWhoDroppedPickup = Pawn;
+    Pickup->PrimaryPickupItemEntry.Count = Count;
+    Pickup->PrimaryPickupItemEntry.ItemDefinition = Def;
+    if (giveammo)
+    {
+        Pickup->PrimaryPickupItemEntry.LoadedAmmo = ammo;
+    }
+    Pickup->PrimaryPickupItemEntry.ReplicationKey++;
 
-	Pickup->OnRep_PrimaryPickupItemEntry();
-	Pickup->TossPickup(Loc, Pawn, 6, true, true, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::Unset);
+    Pickup->OnRep_PrimaryPickupItemEntry();
+    Pickup->TossPickup(Loc, Pawn, 6, true, true, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::Unset);
 
-	Pickup->MovementComponent = (UProjectileMovementComponent*)Statics->SpawnObject(UProjectileMovementComponent::StaticClass(), Pickup);
-	Pickup->MovementComponent->bReplicates = true;
-	((UProjectileMovementComponent*)Pickup->MovementComponent)->SetComponentTickEnabled(true);
+    Pickup->MovementComponent = (UProjectileMovementComponent*)Statics->SpawnObject(UProjectileMovementComponent::StaticClass(), Pickup);
+    Pickup->MovementComponent->bReplicates = true;
+    ((UProjectileMovementComponent*)Pickup->MovementComponent)->SetComponentTickEnabled(true);
 
-	return Pickup;
+    return Pickup;
 }
 
 static AFortPickup* SpawnPickup(FFortItemEntry ItemEntry, FVector Location, EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset)
 {
-	auto Pickup = SpawnPickup(ItemEntry.ItemDefinition, ItemEntry.Count, ItemEntry.LoadedAmmo, Location, PickupSource, SpawnSource);
-	return Pickup;
+    auto Pickup = SpawnPickup(ItemEntry.ItemDefinition, ItemEntry.Count, ItemEntry.LoadedAmmo, Location, PickupSource, SpawnSource);
+    return Pickup;
 }
 
 inline void ShowFoundation(ABuildingFoundation* BuildingFoundation) {
-	if (!BuildingFoundation)
-		return;
+    if (!BuildingFoundation)
+        return;
 
-	BuildingFoundation->bServerStreamedInLevel = true;
-	BuildingFoundation->DynamicFoundationType = EDynamicFoundationType::Static;
-	BuildingFoundation->OnRep_ServerStreamedInLevel();
+    BuildingFoundation->bServerStreamedInLevel = true;
+    BuildingFoundation->DynamicFoundationType = EDynamicFoundationType::Static;
+    BuildingFoundation->OnRep_ServerStreamedInLevel();
 
-	BuildingFoundation->FoundationEnabledState = EDynamicFoundationEnabledState::Enabled;
-	BuildingFoundation->DynamicFoundationRepData.EnabledState = EDynamicFoundationEnabledState::Enabled;
-	BuildingFoundation->DynamicFoundationTransform = BuildingFoundation->GetTransform();
-	BuildingFoundation->OnRep_DynamicFoundationRepData();
+    BuildingFoundation->FoundationEnabledState = EDynamicFoundationEnabledState::Enabled;
+    BuildingFoundation->DynamicFoundationRepData.EnabledState = EDynamicFoundationEnabledState::Enabled;
+    BuildingFoundation->DynamicFoundationTransform = BuildingFoundation->GetTransform();
+    BuildingFoundation->OnRep_DynamicFoundationRepData();
 }
 
 FVector PickSupplyDropLocation(AFortAthenaMapInfo* MapInfo, FVector Center, float Radius)
 {
-	if (!PickSupplyDropLocationOG)
-		return FVector(0, 0, 0);
+    if (!PickSupplyDropLocationOG)
+        return FVector(0, 0, 0);
 
-	const float MinDistance = 10000.0f;
+    const float MinDistance = 10000.0f;
 
-	for (int i = 0; i < 20; i++)
-	{
-		FVector loc = FVector(0, 0, 0);
-		PickSupplyDropLocationOG(MapInfo, &loc, (__int64)&Center, Radius);
+    for (int i = 0; i < 20; i++)
+    {
+        FVector loc = FVector(0, 0, 0);
+        PickSupplyDropLocationOG(MapInfo, &loc, (__int64)&Center, Radius);
 
-		bool bTooClose = false;
-		for (const auto& other : PickedSupplyDropLocations)
-		{
-			float dx = loc.X - other.X;
-			float dy = loc.Y - other.Y;
-			float dz = loc.Z - other.Z;
+        bool bTooClose = false;
+        for (const auto& other : PickedSupplyDropLocations)
+        {
+            float dx = loc.X - other.X;
+            float dy = loc.Y - other.Y;
+            float dz = loc.Z - other.Z;
 
-			float distSquared = dx * dx + dy * dy + dz * dz;
+            float distSquared = dx * dx + dy * dy + dz * dz;
 
-			if (distSquared < MinDistance * MinDistance)
-			{
-				bTooClose = true;
-				break;
-			}
-		}
+            if (distSquared < MinDistance * MinDistance)
+            {
+                bTooClose = true;
+                break;
+            }
+        }
 
-		if (!bTooClose)
-		{
-			PickedSupplyDropLocations.Add(loc);
-			return loc;
-		}
-	}
+        if (!bTooClose)
+        {
+            PickedSupplyDropLocations.Add(loc);
+            return loc;
+        }
+    }
 
-	return FVector(0, 0, 0);
+    return FVector(0, 0, 0);
 }
 
 template<typename T>
 inline std::vector<T*> GetAllObjectsOfClass(UClass* Class = T::StaticClass())
 {
-	std::vector<T*> Objects{};
+    std::vector<T*> Objects{};
 
-	for (int i = 0; i < UObject::GObjects->Num(); ++i)
-	{
-		UObject* Object = UObject::GObjects->GetByIndex(i);
+    for (int i = 0; i < UObject::GObjects->Num(); ++i)
+    {
+        UObject* Object = UObject::GObjects->GetByIndex(i);
 
-		if (!Object)
-			continue;
+        if (!Object)
+            continue;
 
-		if (Object->GetFullName().contains("Default"))
-			continue;
+        if (Object->GetFullName().contains("Default"))
+            continue;
 
-		if (Object->GetFullName().contains("Test"))
-			continue;
+        if (Object->GetFullName().contains("Test"))
+            continue;
 
-		if (Object->IsA(Class) && !Object->IsDefaultObject())
-		{
-			Objects.push_back((T*)Object);
-		}
-	}
+        if (Object->IsA(Class) && !Object->IsDefaultObject())
+        {
+            Objects.push_back((T*)Object);
+        }
+    }
 
-	return Objects;
+    return Objects;
 }
 
 template <class T>
 TArray<T*> GetAllActorsOfClass() {
-	TArray<T*> ResultActors;
+    TArray<T*> ResultActors;
 
-	if (UWorld* World = UWorld::GetWorld()) {
-		TArray<AActor*> OutActors;
-		UGameplayStatics::GetAllActorsOfClass(World, T::StaticClass(), &OutActors);
+    if (UWorld* World = UWorld::GetWorld()) {
+        TArray<AActor*> OutActors;
+        UGameplayStatics::GetAllActorsOfClass(World, T::StaticClass(), &OutActors);
 
-		for (AActor* Actor : OutActors) {
-			if (T* CastedActor = Cast<T>(Actor)) {
-				ResultActors.Add(CastedActor);
-			}
-		}
-	}
-	return ResultActors;
+        for (AActor* Actor : OutActors) {
+            if (T* CastedActor = Cast<T>(Actor)) {
+                ResultActors.Add(CastedActor);
+            }
+        }
+    }
+    return ResultActors;
 }
 
 int CountActorsWithName(FName TargetName, UClass* Class)
 {
-	TArray<AActor*> FoundActors;
-	auto* Statics = (UGameplayStatics*)UGameplayStatics::StaticClass()->DefaultObject;
-	Statics->GetAllActorsOfClass(UWorld::GetWorld(), Class, &FoundActors);
+    TArray<AActor*> FoundActors;
+    auto* Statics = (UGameplayStatics*)UGameplayStatics::StaticClass()->DefaultObject;
+    Statics->GetAllActorsOfClass(UWorld::GetWorld(), Class, &FoundActors);
 
-	int Count = 0;
-	for (AActor* Actor : FoundActors)
-	{
-		if (Actor && Actor->GetName() == TargetName.ToString())
-			Count++;
-	}
-	return Count;
+    int Count = 0;
+    for (AActor* Actor : FoundActors)
+    {
+        if (Actor && Actor->GetName() == TargetName.ToString())
+            Count++;
+    }
+    return Count;
 }
 
 AFortPlayerControllerAthena* GetPCFromId(FUniqueNetIdRepl& ID)
 {
-	for (auto& PlayerState : UWorld::GetWorld()->GameState->PlayerArray)
-	{
-		auto PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerState);
-		if (!PlayerStateAthena)
-			continue;
-		if (PlayerStateAthena->AreUniqueIDsIdentical(ID, PlayerState->UniqueId))
-			return Cast<AFortPlayerControllerAthena>(PlayerState->Owner);
-	}
+    for (auto& PlayerState : UWorld::GetWorld()->GameState->PlayerArray)
+    {
+        auto PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerState);
+        if (!PlayerStateAthena)
+            continue;
+        if (PlayerStateAthena->AreUniqueIDsIdentical(ID, PlayerState->UniqueId))
+            return Cast<AFortPlayerControllerAthena>(PlayerState->Owner);
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 FName ConvFName(FString Name) {
-	return UKismetStringLibrary::GetDefaultObj()->Conv_StringToName(Name);
+    return UKismetStringLibrary::GetDefaultObj()->Conv_StringToName(Name);
 }
