@@ -148,17 +148,23 @@ namespace SDKUtils {
     // FVector utility functions
     inline float Dist(const FVector& V1, const FVector& V2)
     {
-        return (V1 - V2).Size();
+        FVector Diff = { V1.X - V2.X, V1.Y - V2.Y, V1.Z - V2.Z };
+        return sqrt(Diff.X * Diff.X + Diff.Y * Diff.Y + Diff.Z * Diff.Z);
+    }
+
+    inline float Size(const FVector& V)
+    {
+        return sqrt(V.X * V.X + V.Y * V.Y + V.Z * V.Z);
     }
 
     inline FVector GetSafeNormal(const FVector& V)
     {
-        float Magnitude = V.Size();
+        float Magnitude = Size(V);
         if (Magnitude > 0.0f)
         {
-            return V / Magnitude;
+            return FVector{ V.X / Magnitude, V.Y / Magnitude, V.Z / Magnitude };
         }
-        return FVector();
+        return FVector{ 0, 0, 0 };
     }
 
     // TArray utility functions
@@ -168,11 +174,18 @@ namespace SDKUtils {
         return Array.Num() == 0;
     }
 
+    // std::vector utility functions (overload for AdvancedBotBehavior)
+    template<typename T>
+    inline bool empty(const std::vector<T>& Vec)
+    {
+        return Vec.empty();
+    }
+
     // GetTeam helper
     inline int GetTeam(APlayerState* PlayerState)
     {
         if (!PlayerState) return 0;
-        
+
         // Try to find the team property or method
         // This is a placeholder - actual implementation depends on the SDK
         // For now, return 0 as default team
