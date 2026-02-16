@@ -3,8 +3,11 @@
 #include "BehaviorTreeSystem.h"
 #include "BehaviorTreeTasks.h"
 #include "BehaviorTreeDecorators.h"
-#include "BotsSpawner.h"
 #include <map>
+
+namespace BotsSpawner {
+    void SpawnPlayerBot(AActor* OverrideSpawn = nullptr);
+}
 
 namespace AdvancedBotBehavior {
     // POI-based bot spawning
@@ -51,7 +54,10 @@ namespace AdvancedBotBehavior {
         }
 
         // Create spawn points from POIs
-        for (auto& [POIName, Locations] : POILocations) {
+        for (auto& Entry : POILocations) {
+            auto& POIName = Entry.first;
+            auto& Locations = Entry.second;
+
             if (Locations.size() >= 2) {
                 POISpawnPoint Point;
                 Point.POIName = POIName;
