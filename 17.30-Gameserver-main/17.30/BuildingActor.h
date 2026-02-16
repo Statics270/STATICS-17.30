@@ -1,5 +1,6 @@
 #pragma once
 #include "framework.h"
+#include "QuestSystem.h"
 
 namespace BuildingActor {
     void (*OnDamageServerOG)(ABuildingActor* This, float Damage, FGameplayTagContainer& DamageTags, FVector& Momentum, FHitResult& HitInfo, AController* InstigatedBy, AActor* DamageCauser, FGameplayEffectContextHandle& EffectContext);
@@ -35,6 +36,10 @@ namespace BuildingActor {
         }
 
         Pawn->ServerHandlePickup(Pickup, 0.3f, FVector(), true);
+
+        // Track harvesting for quest system
+        QuestSystem::OnHarvesting(PC);
+        QuestSystem::UpdateQuestProgress(PC, QuestSystem::EQuestObjectiveType::Harvesting, MaterialCount);
 
         return OnDamageServerOG(This, Damage, DamageTags, Momentum, HitInfo, InstigatedBy, DamageCauser, EffectContext);
     }

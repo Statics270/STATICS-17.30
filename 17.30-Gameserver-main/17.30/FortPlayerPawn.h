@@ -1,6 +1,7 @@
 #pragma once
 #include "framework.h"
 #include "FortInventory.h"
+#include "QuestSystem.h"
 
 namespace FortPlayerPawn {
     void ServerHandlePickup(AFortPlayerPawnAthena* Pawn, AFortPickup* PickUp, float InFlyTime, FVector& InStartDirection, bool bPlayPickupSound) {

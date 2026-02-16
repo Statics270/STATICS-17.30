@@ -2,6 +2,7 @@
 #include "framework.h"
 #include "FortInventory.h"
 #include "AbilitySystemComponent.h"
+#include "QuestSystem.h"
 
 #include "PlayerBots.h"
 

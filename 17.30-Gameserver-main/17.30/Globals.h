@@ -24,6 +24,27 @@ namespace Globals {
     // Vehicle Options
     bool bVehicleRadioEnabled = true;
 
+    // Bot Fixes - AI Behavior Improvements
+    bool bBotFixesEnabled = true;           // Enable bot movement, combat, and action fixes
+    bool bBotBusJumpFix = true;             // Enable proper bot bus jumping
+    bool bBotDamageFix = true;              // Enable bot damage taking
+    bool bBotStuckDetection = true;         // Enable bot stuck detection and unstuck
+    
+    // Quest System - C2S7 Integration
+    bool bQuestSystemEnabled = true;        // Enable C2S7 quest system
+    bool bDailyQuestsEnabled = true;        // Enable daily quests
+    bool bWeeklyQuestsEnabled = true;       // Enable weekly quests (C2S7 Invasion)
+    bool bBattlePassQuestsEnabled = true;   // Enable battle pass challenges
+    bool bXPAwardsEnabled = true;           // Enable XP awards for actions
+
+    // Action Blocking Fixes
+    bool bConsumablesFix = true;            // Enable consumables action fix
+    bool bReloadFix = true;                 // Enable reload action fix
+    bool bGrenadesFix = true;               // Enable grenades action fix
+    bool bInteractFix = true;               // Enable interact key fix
+    bool bChestsFix = true;                 // Enable chest opening fix
+    bool bHarvestingFix = true;             // Enable harvesting fix
+
     //REAL PLAYERS
     static int NextTeamIndex = 0;
     static int CurrentPlayersOnTeam = 0;

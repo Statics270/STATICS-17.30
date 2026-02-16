@@ -10,6 +10,8 @@
 #include "Misc.h"
 #include "Vehicles.h"
 #include "AdvancedBotBehavior.h"
+#include "BotFixes.h"
+#include "QuestSystem.h"
 
 void InitConsole() {
     AllocConsole();
@@ -90,6 +92,14 @@ DWORD Main(LPVOID) {
 
     Sleep(2000);
     LoadWorld();
+
+    // Main systems are now ticked via NetDriver::TickFlush for better synchronization
+    Log("Main game loop handled by NetDriver tick.");
+    
+    // Keep thread alive
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
 
     return 0;
 }
