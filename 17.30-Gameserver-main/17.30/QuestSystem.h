@@ -388,8 +388,9 @@ namespace QuestSystem {
 
         if (bAllObjectivesComplete && !Quest.bCompleted) {
             Quest.bCompleted = true;
-            FString Reason = FString(L"Quest Completed: ");
-            Reason += Quest.DisplayName;
+            std::wstring ReasonStr = L"Quest Completed: ";
+            ReasonStr += Quest.DisplayName.ToWString();
+            FString Reason = ReasonStr.c_str();
             AwardXP(Progress->Controller, Quest.XPReward, Reason);
             Log("Quest Completed: " + Quest.DisplayName.ToString());
         }
