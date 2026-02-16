@@ -17,6 +17,7 @@ namespace BotFixes {
         
         // Combat state
         float LastCombatTime;
+        float LastCombatScanTime;
         AActor* CurrentTarget;
         float TargetSwitchCooldown;
         
@@ -30,7 +31,12 @@ namespace BotFixes {
         // Bus/Flight state
         bool bHasJumpedFromBus;
         bool bHasLanded;
+        bool bHasThankedBusDriver;
         float JumpDelay;
+        float NextThankTime;
+
+        // Interaction throttles
+        float LastInteractionScanTime;
     };
 
     static std::vector<FBotState*> BotStates;
@@ -49,11 +55,13 @@ namespace BotFixes {
         NewState->Controller = Controller;
         NewState->Pawn = (AFortPlayerPawnAthena*)Controller->Pawn;
         NewState->PlayerState = (AFortPlayerStateAthena*)Controller->PlayerState;
-        NewState->LastMoveTime = UGameplayStatics::GetTimeSeconds(UWorld::GetWorld());
+        float CurrentTime = UGameplayStatics::GetTimeSeconds(UWorld::GetWorld());
+        NewState->LastMoveTime = CurrentTime;
         NewState->LastLocation = FVector();
         NewState->StuckCounter = 0;
         NewState->LastStuckCheck = 0;
         NewState->LastCombatTime = 0;
+        NewState->LastCombatScanTime = 0;
         NewState->CurrentTarget = nullptr;
         NewState->TargetSwitchCooldown = 0;
         NewState->LastActionTime = 0;
@@ -63,8 +71,11 @@ namespace BotFixes {
         NewState->bCanInteract = true;
         NewState->bHasJumpedFromBus = false;
         NewState->bHasLanded = false;
-        NewState->JumpDelay = UKismetMathLibrary::RandomFloatInRange(3.0f, 8.0f);
-        
+        NewState->bHasThankedBusDriver = false;
+        NewState->JumpDelay = CurrentTime + UKismetMathLibrary::RandomFloatInRange(3.0f, 8.0f);
+        NewState->NextThankTime = CurrentTime + UKismetMathLibrary::RandomFloatInRange(1.0f, 4.0f);
+        NewState->LastInteractionScanTime = 0;
+
         BotStates.push_back(NewState);
         return NewState;
     }
@@ -81,7 +92,7 @@ namespace BotFixes {
 
     // Fix 1: Bot Movement - Check if bot is stuck and handle it
     void UpdateBotMovement(FBotState* State) {
-        if (!State || !State->Pawn || !State->Controller) return;
+        if (!State || !State->Pawn || !State->Controller || !Globals::bBotStuckDetection) return;
 
         float CurrentTime = UGameplayStatics::GetTimeSeconds(UWorld::GetWorld());
         FVector CurrentLocation = State->Pawn->K2_GetActorLocation();
@@ -123,12 +134,29 @@ namespace BotFixes {
 
     // Fix 2: Bot Bus Jump - Ensure bots properly exit the bus
     void UpdateBotBusBehavior(FBotState* State) {
-        if (!State || !State->Pawn || !State->Controller || !State->PlayerState) return;
+        if (!State || !State->Pawn || !State->Controller || !State->PlayerState || !State->Controller->Blackboard) return;
 
         AFortGameStateAthena* GameState = (AFortGameStateAthena*)UWorld::GetWorld()->GameState;
         if (!GameState) return;
 
         float CurrentTime = UGameplayStatics::GetTimeSeconds(UWorld::GetWorld());
+
+        if (!Globals::bBotBusJumpFix) {
+            return;
+        }
+
+        if (State->PlayerState->bThankedBusDriver) {
+            State->bHasThankedBusDriver = true;
+        }
+
+        if (State->PlayerState->bInAircraft && !State->bHasThankedBusDriver) {
+            if (CurrentTime >= State->NextThankTime) {
+                State->Controller->ThankBusDriver();
+                State->PlayerState->bThankedBusDriver = true;
+                State->PlayerState->ForceNetUpdate();
+                State->bHasThankedBusDriver = true;
+            }
+        }
 
         // Check if bot should jump from bus
         if (State->PlayerState->bInAircraft && !State->bHasJumpedFromBus) {
@@ -140,45 +168,55 @@ namespace BotFixes {
                         UKismetStringLibrary::Conv_StringToName(L"AIEvaluator_JumpOffBus_Destination")
                     );
 
-                    if (!Destination.IsZero()) {
-                        // Perform bus jump
-                        State->Controller->Blackboard->SetValueAsVector(
-                            ConvFName(L"AIEvaluator_Dive_Destination"), Destination
-                        );
-                        State->Controller->Blackboard->SetValueAsVector(
-                            ConvFName(L"AIEvaluator_Glide_Destination"), Destination
-                        );
-
-                        State->Controller->Blackboard->SetValueAsEnum(
-                            ConvFName(L"AIEvaluator_Dive_ExecutionStatus"), 
-                            (int)EExecutionStatus::ExecutionAllowed
-                        );
-                        State->Controller->Blackboard->SetValueAsEnum(
-                            ConvFName(L"AIEvaluator_Glide_ExecutionStatus"), 
-                            (int)EExecutionStatus::ExecutionDenied
-                        );
-
-                        // Teleport to aircraft and start skydiving
-                        AFortAthenaAircraft* Aircraft = GameState->GetAircraft(0);
-                        if (Aircraft) {
-                            State->Pawn->K2_TeleportTo(Aircraft->K2_GetActorLocation(), FRotator());
+                    if (Destination.IsZero() && BuildingFoundations.Num() > 0) {
+                        AActor* DropZone = BuildingFoundations[UKismetMathLibrary::RandomIntegerInRange(0, BuildingFoundations.Num() - 1)];
+                        if (DropZone) {
+                            Destination = DropZone->K2_GetActorLocation();
                         }
-                        State->Pawn->BeginSkydiving(true);
-                        State->Pawn->SetHealth(100);
-                        State->Pawn->SetShield(0);
-
-                        State->PlayerState->bInAircraft = false;
-                        State->bHasJumpedFromBus = true;
-
-                        State->Controller->Blackboard->SetValueAsBool(
-                            ConvFName(L"AIEvaluator_Global_IsInBus"), false
-                        );
-                        State->Controller->Blackboard->SetValueAsBool(
-                            ConvFName(L"AIEvaluator_Global_HasEverJumpedFromBusKey"), true
-                        );
-
-                        Log("Bot successfully jumped from bus!");
                     }
+
+                    if (Destination.IsZero()) {
+                        Destination = State->Pawn->K2_GetActorLocation();
+                    }
+
+                    // Perform bus jump
+                    State->Controller->Blackboard->SetValueAsVector(
+                        ConvFName(L"AIEvaluator_Dive_Destination"), Destination
+                    );
+                    State->Controller->Blackboard->SetValueAsVector(
+                        ConvFName(L"AIEvaluator_Glide_Destination"), Destination
+                    );
+
+                    State->Controller->Blackboard->SetValueAsEnum(
+                        ConvFName(L"AIEvaluator_Dive_ExecutionStatus"), 
+                        (int)EExecutionStatus::ExecutionAllowed
+                    );
+                    State->Controller->Blackboard->SetValueAsEnum(
+                        ConvFName(L"AIEvaluator_Glide_ExecutionStatus"), 
+                        (int)EExecutionStatus::ExecutionDenied
+                    );
+
+                    // Teleport to aircraft and start skydiving
+                    AFortAthenaAircraft* Aircraft = GameState->GetAircraft(0);
+                    if (Aircraft) {
+                        State->Pawn->K2_TeleportTo(Aircraft->K2_GetActorLocation(), FRotator());
+                    }
+                    State->Pawn->BeginSkydiving(true);
+                    State->Pawn->SetHealth(100);
+                    State->Pawn->SetShield(0);
+
+                    State->PlayerState->bInAircraft = false;
+                    State->PlayerState->bHasEverSkydivedFromBus = true;
+                    State->bHasJumpedFromBus = true;
+
+                    State->Controller->Blackboard->SetValueAsBool(
+                        ConvFName(L"AIEvaluator_Global_IsInBus"), false
+                    );
+                    State->Controller->Blackboard->SetValueAsBool(
+                        ConvFName(L"AIEvaluator_Global_HasEverJumpedFromBusKey"), true
+                    );
+
+                    Log("Bot successfully jumped from bus!");
                 }
             }
         }
@@ -207,10 +245,11 @@ namespace BotFixes {
 
     // Fix 3: Bot Damage - Ensure bots can take damage
     void FixBotDamage(AFortPlayerPawnAthena* Pawn) {
-        if (!Pawn) return;
+        if (!Pawn || !Globals::bBotDamageFix) return;
 
         // Ensure bot is not invulnerable
         Pawn->bIsInvulnerable = false;
+        Pawn->bCanBeDamaged = true;
         
         // Ensure bot has health
         if (Pawn->GetHealth() <= 0) {
@@ -232,6 +271,10 @@ namespace BotFixes {
         // Only process actions every second
         if (CurrentTime - State->LastActionTime < 1.0f) return;
         State->LastActionTime = CurrentTime;
+
+        if (!State->Controller->Inventory) {
+            return;
+        }
 
         // Check health and use consumables if needed
         float Health = State->Pawn->GetHealth();
@@ -266,9 +309,14 @@ namespace BotFixes {
 
     // Fix 5: Bot Combat - Improved targeting and shooting
     void UpdateBotCombat(FBotState* State) {
-        if (!State || !State->Pawn || !State->Controller) return;
+        if (!State || !State->Pawn || !State->Controller || !State->Controller->Blackboard || !Globals::bBotCombatEnabled) return;
 
         float CurrentTime = UGameplayStatics::GetTimeSeconds(UWorld::GetWorld());
+
+        if (CurrentTime - State->LastCombatScanTime < 1.0f) {
+            return;
+        }
+        State->LastCombatScanTime = CurrentTime;
 
         // Find nearest enemy
         TArray<AActor*> AllPawns;
@@ -314,12 +362,14 @@ namespace BotFixes {
             if (State->Pawn->CurrentWeapon && State->Pawn->CurrentWeapon->WeaponData) {
                 if (State->Pawn->CurrentWeapon->WeaponData->IsA(UFortWeaponMeleeItemDefinition::StaticClass())) {
                     // Find a ranged weapon
-                    for (auto& Entry : State->Controller->Inventory->Inventory.ReplicatedEntries) {
-                        if (Entry.ItemDefinition && Entry.ItemDefinition->ItemType == EFortItemType::Weapon) {
-                            if (!Entry.ItemDefinition->IsA(UFortWeaponMeleeItemDefinition::StaticClass())) {
-                                State->Pawn->EquipWeaponDefinition((UFortWeaponItemDefinition*)Entry.ItemDefinition,
-                                    Entry.ItemGuid, Entry.TrackerGuid, false);
-                                break;
+                    if (State->Controller->Inventory) {
+                        for (auto& Entry : State->Controller->Inventory->Inventory.ReplicatedEntries) {
+                            if (Entry.ItemDefinition && Entry.ItemDefinition->ItemType == EFortItemType::Weapon) {
+                                if (!Entry.ItemDefinition->IsA(UFortWeaponMeleeItemDefinition::StaticClass())) {
+                                    State->Pawn->EquipWeaponDefinition((UFortWeaponItemDefinition*)Entry.ItemDefinition,
+                                        Entry.ItemGuid, Entry.TrackerGuid, false);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -349,7 +399,13 @@ namespace BotFixes {
 
     // Fix 6: Bot Interaction - Enable chest opening and pickup
     void UpdateBotInteraction(FBotState* State) {
-        if (!State || !State->Pawn || !State->Controller) return;
+        if (!State || !State->Pawn || !State->Controller || !Globals::bBotLootingEnabled) return;
+
+        float CurrentTime = UGameplayStatics::GetTimeSeconds(UWorld::GetWorld());
+        if (CurrentTime - State->LastInteractionScanTime < 1.5f) {
+            return;
+        }
+        State->LastInteractionScanTime = CurrentTime;
 
         FVector BotLocation = State->Pawn->K2_GetActorLocation();
 
@@ -412,9 +468,7 @@ namespace BotFixes {
 
     // Main tick function for all bot fixes
     void TickBotFixes() {
-        if (!Globals::bBotsEnabled) return;
-
-        float CurrentTime = UGameplayStatics::GetTimeSeconds(UWorld::GetWorld());
+        if (!Globals::bBotsEnabled || !Globals::bBotFixesEnabled) return;
 
         for (auto* State : BotStates) {
             if (!State || !State->Controller) continue;

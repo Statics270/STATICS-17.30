@@ -111,6 +111,17 @@ namespace NetDriver {
             }
         }
 
+        if ((GameState->GamePhase == EAthenaGamePhase::Aircraft || GameState->GamePhase == EAthenaGamePhase::SafeZones)
+            && GameMode->AlivePlayers.Num() > 0
+            && (GameMode->AlivePlayers.Num() + GameMode->AliveBots.Num()) < GameMode->GameSession->MaxPlayers
+            && GameMode->AliveBots.Num() < Globals::MaxBotsToSpawn && Globals::bBotsEnabled)
+        {
+            if (UKismetMathLibrary::GetDefaultObj()->RandomBoolWithWeight(0.02f))
+            {
+                BotsSpawner::SpawnPlayerBot();
+            }
+        }
+
         if (Globals::bBotsEnabled) {
             if (Globals::bBotsShouldUseManualTicking) {
                 NpcAI::TickBots();
