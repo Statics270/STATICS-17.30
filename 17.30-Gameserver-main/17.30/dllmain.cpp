@@ -12,6 +12,8 @@
 #include "AdvancedBotBehavior.h"
 #include "QuestSystem.h"
 #include "BotFixes.h"
+#include "ActionSystem.h"
+#include "FortAthenaAIBotController_SDK.h"
 
 void InitConsole() {
     AllocConsole();
@@ -49,8 +51,17 @@ void Hook() {
     BotFixes::Initialize();
     BotFixes::HookAll();
 
+    // Initialize new action system
+    ActionSystem::HookAll();
+
+    // Initialize new bot SDK system
+    FortAthenaAIBotController_SDK::HookAll();
+
     // Initialize quest system
     QuestSystem::HookAll();
+
+    // Initialize vehicles
+    Vehicles::HookAll();
 
     MH_EnableHook(MH_ALL_HOOKS);
 }
@@ -91,6 +102,10 @@ DWORD Main(LPVOID) {
 
     Hook();
 
+    // Initialize new systems
+    ActionSystem::Initialize();
+    FortAthenaAIBotController_SDK::Initialize();
+    
     // Initialize advanced bot behavior system
     AdvancedBotBehavior::Initialize();
 

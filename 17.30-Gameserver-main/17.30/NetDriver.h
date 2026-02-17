@@ -4,6 +4,8 @@
 #include "BotsSpawner.h"
 #include "FortAthenaAIBotController.h"
 #include "QuestSystem.h"
+#include "ActionSystem.h"
+#include "FortAthenaAIBotController_SDK.h"
 
 namespace NetDriver {
     EAthenaGamePhaseStep GetCurrentGamePhaseStep(AFortGameModeAthena* GameMode, AFortGameStateAthena* GameState) {
@@ -94,50 +96,72 @@ namespace NetDriver {
             }
         }
 
+        // === OPTIMIZED SPAWNING SYSTEM ===
         if (GameState->WarmupCountdownEndTime - UGameplayStatics::GetTimeSeconds(UWorld::GetWorld()) <= 0 && GameState->GamePhase == EAthenaGamePhase::Warmup)
         {
             FortGameModeAthena::StartAircraftPhase(GameMode, 0);
         }
 
+        // Spawn bots one by one during warmup - distributed spawning
         if (GameState->GamePhase == EAthenaGamePhase::Warmup &&
             GameMode->AlivePlayers.Num() > 0
             && (GameMode->AlivePlayers.Num() + GameMode->AliveBots.Num()) < GameMode->GameSession->MaxPlayers
             && GameMode->AliveBots.Num() < Globals::MaxBotsToSpawn && Globals::bBotsEnabled)
         {
-            if (UKismetMathLibrary::GetDefaultObj()->RandomBoolWithWeight(0.045f))
-            {
+            static float LastWarmupBotSpawn = 0.0f;
+            if (CurrentTime - LastWarmupBotSpawn >= 0.1f) { // One bot every 0.1 seconds
+                LastWarmupBotSpawn = CurrentTime;
                 BotsSpawner::SpawnPlayerBot();
             }
         }
 
+        // Spawn bots one by one during aircraft - distributed spawning
         if ((GameState->GamePhase == EAthenaGamePhase::Aircraft || GameState->GamePhase == EAthenaGamePhase::SafeZones)
             && GameMode->AlivePlayers.Num() > 0
             && (GameMode->AlivePlayers.Num() + GameMode->AliveBots.Num()) < GameMode->GameSession->MaxPlayers
             && GameMode->AliveBots.Num() < Globals::MaxBotsToSpawn && Globals::bBotsEnabled)
         {
-            if (UKismetMathLibrary::GetDefaultObj()->RandomBoolWithWeight(0.02f))
-            {
+            static float LastAircraftBotSpawn = 0.0f;
+            if (CurrentTime - LastAircraftBotSpawn >= 0.1f) { // One bot every 0.1 seconds
+                LastAircraftBotSpawn = CurrentTime;
                 BotsSpawner::SpawnPlayerBot();
             }
         }
 
+        // === OPTIMIZED TICK SYSTEM - DISTRIBUTED PROCESSING ===
         if (Globals::bBotsEnabled) {
-            if (Globals::bBotsShouldUseManualTicking) {
-                NpcAI::TickBots();
+            // Bot tick - only every 0.1 seconds
+            static float LastBotTick = 0.0f;
+            if (CurrentTime - LastBotTick >= 0.1f) {
+                LastBotTick = CurrentTime;
+                
+                if (Globals::bBotsShouldUseManualTicking) {
+                    NpcAI::TickBots();
+                }
+                else {
+                    NpcAI::TickBehaviorTree();
+                }
+                PlayerBots::TickBots();
+                
+                // Tick bot fixes for improved AI behavior (integrated in FortAthenaAIBotController)
+                FortAthenaAIBotController::TickBotFixes();
+                
+                // Tick new bot system SDK
+                FortAthenaAIBotController_SDK::TickBotSystem();
             }
-            else {
-                NpcAI::TickBehaviorTree();
-            }
-            PlayerBots::TickBots();
-            
-            // Tick bot fixes for improved AI behavior (integrated in FortAthenaAIBotController)
-            FortAthenaAIBotController::TickBotFixes();
+        }
+
+        // Action system tick - 20 times per second (every 0.05s)
+        static float LastActionTick = 0.0f;
+        if (CurrentTime - LastActionTick >= 0.05f) {
+            LastActionTick = CurrentTime;
+            ActionSystem::TickActionSystem();
         }
 
         // Tick quest system for time-based updates
         QuestSystem::TickSurvivalXP();
 
-        return TickFlushOG(This, DeltaSeconds); //bro forgot to add return
+        return TickFlushOG(This, DeltaSeconds);
     }
 
     float GetMaxTickRate(float DeltaTime, bool bAllowFrameRateSmoothing = true) {
