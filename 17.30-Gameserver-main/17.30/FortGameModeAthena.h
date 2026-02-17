@@ -24,6 +24,9 @@ namespace FortGameModeAthena {
         float CurrentTime = UGameplayStatics::GetDefaultObj()->GetTimeSeconds(UWorld::GetWorld());
         float WarmupTime = 60.f;
 
+        // Track if we had players in previous tick to detect first player connection
+        static bool bHadPlayersLastTick = false;
+
         if (!bSetupPlaylist) {
             bSetupPlaylist = true;
             UFortPlaylistAthena* Playlist = nullptr;
@@ -48,7 +51,9 @@ namespace FortGameModeAthena {
             GameState->CurrentPlaylistId = Playlist->PlaylistId;
             GameState->OnRep_CurrentPlaylistId();
 
-            GameState->WarmupCountdownEndTime = CurrentTime + WarmupTime;
+            // Don't start countdown yet - wait for players to connect
+            // Set countdown to a far future time until players join
+            GameState->WarmupCountdownEndTime = CurrentTime + 99999.f;
             GameMode->WarmupCountdownDuration = WarmupTime;
             GameState->WarmupCountdownStartTime = CurrentTime;
             GameMode->WarmupEarlyCountdownDuration = WarmupTime;
@@ -243,13 +248,27 @@ namespace FortGameModeAthena {
         }
 
         if (GameState->PlayersLeft > 0) {
+            // Start countdown when first player connects
+            if (!bHadPlayersLastTick) {
+                bHadPlayersLastTick = true;
+                // Initialize countdown now that players are actually connected
+                GameState->WarmupCountdownEndTime = CurrentTime + WarmupTime;
+                GameMode->WarmupCountdownDuration = WarmupTime;
+                GameState->WarmupCountdownStartTime = CurrentTime;
+                GameMode->WarmupEarlyCountdownDuration = WarmupTime;
+                Log("First player connected - Starting warmup countdown!");
+            }
+
             UGameplayStatics::GetAllActorsOfClass(UWorld::GetWorld(), ABuildingFoundation::StaticClass(), &BuildingFoundations);
             UGameplayStatics::GetAllActorsOfClass(UWorld::GetWorld(), AFortPlayerStartWarmup::StaticClass(), &PlayerStarts);
 
             return true;
         }
         else {
-            GameState->WarmupCountdownEndTime = CurrentTime + WarmupTime;
+            // Reset the flag when no players are connected
+            bHadPlayersLastTick = false;
+            // Keep countdown at far future until players join
+            GameState->WarmupCountdownEndTime = CurrentTime + 99999.f;
             GameMode->WarmupCountdownDuration = WarmupTime;
             GameState->WarmupCountdownStartTime = CurrentTime;
             GameMode->WarmupEarlyCountdownDuration = WarmupTime;
