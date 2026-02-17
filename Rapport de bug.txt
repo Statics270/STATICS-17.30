@@ -1,0 +1,46 @@
+Voici les rapport, pour le gameserver, 17.30 Chapitre 2 Saison 7, 
+
+Repos : https://github.com/Statics270/STATICS-17.30
+
+FICHIER : 17.30-Gameserver-main
+
+On va reparer ce gameserver pour project reboot je voudrais reparer le 17.30-Gameserver.zip disponible dans mon repos, https://github.com/Statics270/STATICS-17.30, le fichier ou tu doir corriger les bots et 17.30-Gameserver.zip Je vouvrais reparer les bots, car ils son imbobiles et je ne les vois pas dans la game, il meurt de zone car il ne bouge pas pouras tu essayer de modifier le fichier pour les rendre fonctionnel,NOUBLIE PAS les dependence et les declaration
+
+
+Rapport de bug n°4: 
+1) Les action ont était partiellement réparée,Au début tout marché puis ensuite quelques bug mais moins qu'avant, par exemple la pioche l'animation et normal, mais elle ne casse rien, le coffre quand on l'ouvre le cercle E arrive au bout mais après elle se reset, qui ne ouvre pas le coffre, mais l AR se recharge 
+
+2) les bots ne remercie plus et ne sautent plus du bus,le conteur affiche bien qu'il y a des bots, mais je ne les voient je les vois que dans le lobby, j'envisage que le amélioration des bots vous le réintégré dans les sdk, dans les structures de bots existant pour tester 
+
+3) vérifier le gameserver il lag et , j'envisage que vous vérifiez et intègre les réparations dans les fichiers SDK avec la structure de base, car ses erreurs sont critiques et gâche l'expérience du
+
+
+Rapport de bug n°3 : 
+
+1) Les players bots apparaissent dans le lobbies puis ensuire ils ne sautent plus du bus, ne remercie plus le bus, et n'apparaissent sans doute dans la map, pour ma par j'en ai pas vue, dans les journal de kill en battle royale et le couteur de jouer j'ai pus remarquer que majoriterment les bots sont mort de zone car ils sont imobiles, j'ai aussi vu un bosse "J'ai vue le point exclamation rouge en haut" je lui est tirer dessu il prenait aucun dégat, just un degat au pompe et c'est tout !
+
+2) Les action bugger reste partiellemt corriger, certaine action sont bugger, d'apres mes test voici les actions qui sont encore bugger : Boire une grande ou petit potion, utiliser la pioche, recharger mon AR, PM et pompe, lancer des grenades, ouvrir tout type de coffre "petit, grande, caisse enregistreuse...", faire des action avec la touche "E", sauf pour tirer et viser qui fonction correctement, c'est bug la sont tres chiant car la motier des action son bloquer pour aucune raison.
+
+3) Mineur, mais integre le system actuel de quest et XP du Chapitre 2 Saison 7 !
+
+Les 2 Bugs, qui soit les players ais et les action qui bloquent dans certain items, reste OBLIGATOIRE et PRIORITAIRE à reparer, veullez apres reparer ou corriger des bugs verfier les dépendence et les integration et les erreur de compilation de haut dessu pour eviter de perdre mon temps a les reparer
+
+
+
+
+Rapport de bug n°2, le reset des arme lorsque on lance la partie fonction, et la compilation, voici les autres bugs que j'ai rencontrer :
+
+1) J'ai remarquer que les bots arrivaient lentement dans des spawn plutot aleatoire, ils etaient tout imobile, je peut en deduire que les fonctions de base pour les players bots, comme se prommenait dans la map, loot, build, spawn dans des ville, tirer, tuer, combatre, et etc...,  les fonctions de base d'un bots ne sont pas present,(J'avait prevue de ameliorer ses bots avec vous pour les rendrers plus intelligent) j'ai essayer de leur tirer de dessus, aucun degat infliger, il ma fallus un peut temps pour leur infliger des degats et les tuer, en parlant de ca, le conteur de kill ne marche pas quand je tue des bots. J'envisage pour les bots, des meilleurs spawn dans les villes, Par exemple, Grande villes ou il y a sens doute des bosse, plus de bots, spawn, moyen ville aussi, et quelque bots spawn dans des petit lieu, les bots localiserons et atterisseront rapidement comme un vrais joueur sur un toit,  (en fonction de la map du chapitre 2 saison 7), les bots pourons loot, le toir et la maison, et peut etre la ville EN FONCTION DE LA ZONE, Dans le lobbies, les bots danseront et tirons sur les autres bots our joueure, les bots en game auront des capaciter de build de se proteger, et etc (voir ce gameplay pour plus de capaciter : https://www.youtube.com/watch?v=XHc7_vhYqYM&t=5s)
+ 
+2) Toujour les meme que la permier partie, bug avec les action par exemple quand je veut lancer un bombe, boire une potion, ouvrir des coffres, utiliser ma piocher, ou d'autre action on me l'empeche de le faire les action, qui est tres problematique pour la progression en battle royale, de temp en temps je peut faire des action mais ses tres rare
+
+3) un petit bug mineur, pas tres important, les station de radio ou les music quand on conduit les vehicules, ne sont indisponible
+
+Apres une petit partie avec le gameserver 17.30-Gameserver.zip, j'ai pus analyser plusieur BUG, je vous rapporte les BUG pour que vous essayer de les regler et ensuite avoir un gameplay plus fluide :
+
+1) Les Players BOTS sautent du bus et remercient le chaufeur de bus, ensuite ils activent leurs planeurs, et apres ils ne bougent meme plus ou disparait (pendant ma partie pour test, j'ai juste vue les bots sauter et activer leur planeur puis ensuite je n'ai les est pas vus)
+
+2) De temps en temps quand je voulais clicker pour une action, par exemple utilise une potion (du shield a mon issue), recharger une arme, ou utiliser la pioche pour recupere du materieau, il y avait un bug qui me le empecher de faire l'action, puis soudain je pouvais boir la potion, utilise la potion et recharger, mais apres le bug revient, parcontre il n'y a pas de bug pour les tir et la viser avec les armes
+
+3) Lorsque on recupere des armes au lobbies et qu'ensuite le bus se lance, j'ai remarquée que on gardée l'arme de notre inventaire, alors que de base si on recupere un arme dans le lobbies puis ensuite le bus se lance, notre inventaire se renitialise
+
