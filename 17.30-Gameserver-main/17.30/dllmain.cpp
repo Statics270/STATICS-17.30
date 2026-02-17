@@ -60,8 +60,7 @@ void Hook() {
     // Initialize quest system
     QuestSystem::HookAll();
 
-    // Initialize vehicles
-    Vehicles::HookAll();
+    // Note: Vehicles system doesn't have HookAll() - it uses direct function calls
 
     MH_EnableHook(MH_ALL_HOOKS);
 }
