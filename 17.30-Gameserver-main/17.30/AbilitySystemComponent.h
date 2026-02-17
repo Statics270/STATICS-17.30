@@ -134,12 +134,34 @@ namespace AbilitySystemComponent {
         AFortPlayerPawnAthena* Pawn = (AFortPlayerPawnAthena*)PC->Pawn;
 
         // Reset any blocked state flags by clearing active gameplay effects
-        if (Pawn->AbilitySystemComponent)
+        if (Pawn->AbilitySystemComponent && Globals::bConsumablesFix)
         {
             Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
         }
 
         return ConsumeItemOG(PC, ItemEntry);
+    }
+
+    // Hook to fix reload blocking
+    void (*ServerReloadOG)(AFortWeapon* Weapon);
+    void ServerReload(AFortWeapon* Weapon)
+    {
+        if (!Weapon || !Weapon->WeaponData) {
+            return ServerReloadOG(Weapon);
+        }
+
+        // Get the pawn that owns this weapon
+        AFortPlayerPawnAthena* Pawn = nullptr;
+        if (Weapon->GetOwner() && Weapon->GetOwner()->IsA(AFortPlayerPawnAthena::StaticClass())) {
+            Pawn = (AFortPlayerPawnAthena*)Weapon->GetOwner();
+        }
+
+        // Clear any blocking states before reload
+        if (Pawn && Pawn->AbilitySystemComponent && Globals::bReloadFix) {
+            Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+        }
+
+        return ServerReloadOG(Weapon);
     }
 
     void HookAll()
@@ -152,6 +174,9 @@ namespace AbilitySystemComponent {
 
         // Hook consumable usage to prevent blocking
         MH_CreateHook((LPVOID)(ImageBase + 0x48F5F80), ConsumeItem, (LPVOID*)&ConsumeItemOG);
+
+        // Hook reload to prevent blocking
+        MH_CreateHook((LPVOID)(ImageBase + 0x4D50C30), ServerReload, (LPVOID*)&ServerReloadOG);
 
         Log("AbilitySystemComponent Hooked!");
     }

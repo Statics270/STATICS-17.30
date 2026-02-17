@@ -10,7 +10,6 @@
 #include "Misc.h"
 #include "Vehicles.h"
 #include "AdvancedBotBehavior.h"
-#include "BotFixes.h"
 #include "QuestSystem.h"
 
 void InitConsole() {

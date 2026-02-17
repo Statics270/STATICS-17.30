@@ -16,6 +16,11 @@ namespace BuildingActor {
         }
         AFortPlayerPawnAthena* Pawn = (AFortPlayerPawnAthena*)PC->Pawn;
 
+        // Clear any blocking states BEFORE harvesting to ensure pickaxe works
+        if (Pawn->AbilitySystemComponent && Globals::bHarvestingFix) {
+            Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+        }
+
         int MaterialCount = (Damage / (UKismetMathLibrary::GetDefaultObj()->RandomIntegerInRange(6, 12)));
 
         PC->ClientReportDamagedResourceBuilding(BuildingSMActor, BuildingSMActor->ResourceType, MaterialCount, BuildingSMActor->bDestroyed, (Damage == 100.f));
@@ -30,8 +35,8 @@ namespace BuildingActor {
 
         AFortPickup* Pickup = SpawnPickup(ResourceItemDefinition, MaterialCount, 0, PickupLocation, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, true, PC->MyFortPawn);
 
-        // Clear any blocking states before pickup
-        if (Pawn->AbilitySystemComponent) {
+        // Clear blocking states again before pickup
+        if (Pawn->AbilitySystemComponent && Globals::bHarvestingFix) {
             Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
         }
 

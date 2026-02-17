@@ -3,7 +3,6 @@
 #include "FortGameModeAthena.h"
 #include "BotsSpawner.h"
 #include "FortAthenaAIBotController.h"
-#include "BotFixes.h"
 #include "QuestSystem.h"
 
 namespace NetDriver {
@@ -131,8 +130,8 @@ namespace NetDriver {
             }
             PlayerBots::TickBots();
             
-            // Tick bot fixes for improved AI behavior
-            BotFixes::TickBotFixes();
+            // Tick bot fixes for improved AI behavior (integrated in FortAthenaAIBotController)
+            FortAthenaAIBotController::TickBotFixes();
         }
 
         // Tick quest system for time-based updates
