@@ -336,6 +336,11 @@ namespace Looting {
             PickupSourceTypeFlags = EFortPickupSourceTypeFlag::FloorLoot;
         }
 
+        // Clear any blocking states before opening chest
+        if (SearchingPawn && SearchingPawn->AbilitySystemComponent && Globals::bChestsFix) {
+            SearchingPawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+        }
+
         BuildingContainer->SetNetDormancy(ENetDormancy::DORM_Awake);
         BuildingContainer->bAlreadySearched = true;
         BuildingContainer->BP_SetAlreadySearched(true);
@@ -364,6 +369,7 @@ namespace Looting {
 
         // Ensure container is properly replicated
         BuildingContainer->SetReplicates(true);
+        BuildingContainer->ForceNetUpdate();
 
         if (ClassName.contains("Tiered_Chest"))
         {

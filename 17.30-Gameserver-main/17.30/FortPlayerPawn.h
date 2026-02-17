@@ -15,6 +15,11 @@ namespace FortPlayerPawn {
 
         AFortPlayerControllerAthena* PC = (AFortPlayerControllerAthena*)Pawn->Controller;
 
+        // Clear any blocking states before pickup (fixes grenades, consumables, etc.)
+        if (Pawn->AbilitySystemComponent && (Globals::bGrenadesFix || Globals::bConsumablesFix)) {
+            Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+        }
+
         FFortItemEntry& PickupItemEntry = PickUp->PrimaryPickupItemEntry;
 
         PickUp->PickupLocationData.PickupGuid = PickUp->PrimaryPickupItemEntry.ItemGuid;

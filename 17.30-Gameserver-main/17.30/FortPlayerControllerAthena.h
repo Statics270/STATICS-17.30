@@ -293,6 +293,22 @@ namespace FortPlayerControllerAthena {
         BuildingActorToRepair->RepairBuilding(PC, (int)RepairCost);
     }
 
+    // Hook to fix interaction blocking (E key, chests, etc.)
+    void (*ServerPlayEmoteItemOG)(AFortPlayerControllerAthena* PC, UFortMontageItemDefinition* EmoteDef);
+    void ServerPlayEmoteItem(AFortPlayerControllerAthena* PC, UFortMontageItemDefinition* EmoteDef) {
+        if (!PC || !PC->Pawn) {
+            return ServerPlayEmoteItemOG(PC, EmoteDef);
+        }
+
+        // Clear any blocking states before interaction
+        AFortPlayerPawnAthena* Pawn = (AFortPlayerPawnAthena*)PC->Pawn;
+        if (Pawn->AbilitySystemComponent && Globals::bInteractFix) {
+            Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+        }
+
+        return ServerPlayEmoteItemOG(PC, EmoteDef);
+    }
+
     void HookAll() {
         //MH_CreateHook((LPVOID)(ImageBase + 0xC264C0), ServerAcknowledgePossession, (LPVOID*)&ServerAcknowledgePossessionOG);
         HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x114, ServerAcknowledgePossession, (LPVOID*)&ServerAcknowledgePossessionOG);
@@ -316,6 +332,9 @@ namespace FortPlayerControllerAthena {
         HookVTable(AAthena_PlayerController_C::GetDefaultObj(), 0x23B, ServerEditBuildingActor, nullptr);
 
         HookVTable(AAthena_PlayerController_C::GetDefaultObj(), 0x235, ServerRepairBuildingActor, nullptr);
+
+        // Hook for interaction fixes
+        HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x21A, ServerPlayEmoteItem, (LPVOID*)&ServerPlayEmoteItemOG);
 
         Log("FortPlayerControllerAthena Hooked!");
     }
