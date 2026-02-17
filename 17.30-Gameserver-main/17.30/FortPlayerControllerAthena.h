@@ -69,6 +69,20 @@ namespace FortPlayerControllerAthena {
         AFortGameStateAthena* GameState = (AFortGameStateAthena*)UWorld::GetWorld()->GameState;
 
         auto PC = (AFortPlayerControllerAthena*)Comp->GetOwner();
+
+        // Reset player inventory when jumping from bus (prevent keeping lobby items)
+        if (PC && PC->WorldInventory && PC->WorldInventory->Inventory.ItemInstances.Num() > 0) {
+            // Clear inventory except for starting items
+            for (int i = PC->WorldInventory->Inventory.ItemInstances.Num() - 1; i >= 0; i--) {
+                auto ItemInstance = PC->WorldInventory->Inventory.ItemInstances[i];
+                if (ItemInstance && !ItemInstance->GetItemDefinitionBP()->IsA(UFortWeaponMeleeItemDefinition::StaticClass())) {
+                    PC->WorldInventory->Inventory.ItemInstances.RemoveAt(i);
+                }
+            }
+            PC->WorldInventory->Inventory.MarkArrayDirty();
+            PC->WorldInventory->HandleInventoryLocalUpdate();
+        }
+
         UWorld::GetWorld()->AuthorityGameMode->RestartPlayer(PC);
 
         AFortPlayerStateAthena* PlayerState = PC ? (AFortPlayerStateAthena*)PC->PlayerState : nullptr;

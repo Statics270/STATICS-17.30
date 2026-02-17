@@ -11,6 +11,7 @@
 #include "Vehicles.h"
 #include "AdvancedBotBehavior.h"
 #include "QuestSystem.h"
+#include "BotFixes.h"
 
 void InitConsole() {
     AllocConsole();
@@ -43,6 +44,13 @@ void Hook() {
 
     NetDriver::HookAll();
     FortAthenaAIBotController::HookAll();
+
+    // Initialize bot fixes system
+    BotFixes::Initialize();
+    BotFixes::HookAll();
+
+    // Initialize quest system
+    QuestSystem::HookAll();
 
     MH_EnableHook(MH_ALL_HOOKS);
 }

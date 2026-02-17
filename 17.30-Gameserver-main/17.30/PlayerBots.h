@@ -204,21 +204,39 @@ namespace PlayerBots {
             }
 
             {
-                // Combat and looting behaviors
+                // Combat and looting behaviors with priority system
                 auto* CombatSelector = new BTComposite_Selector();
                 CombatSelector->NodeName = "CombatAndLooting";
 
+                // Priority 1: Flee storm (highest priority - survival)
+                auto* FleeStormTask = new AdvancedBotBehavior::BTTask_FleeStorm();
+                FleeStormTask->NodeName = "FleeStorm";
+                CombatSelector->AddChild(FleeStormTask);
+
+                // Priority 2: Engage enemy
                 auto* EngageTask = new AdvancedBotBehavior::BTTask_EngageEnemy();
                 EngageTask->NodeName = "EngageEnemy";
                 CombatSelector->AddChild(EngageTask);
 
+                // Priority 3: Advanced building
+                auto* BuildTask = new AdvancedBotBehavior::BTTask_AdvancedBuild();
+                BuildTask->NodeName = "AdvancedBuild";
+                CombatSelector->AddChild(BuildTask);
+
+                // Priority 4: Smart looting
+                auto* SmartLootTask = new AdvancedBotBehavior::BTTask_SmartLoot();
+                SmartLootTask->NodeName = "SmartLoot";
+                CombatSelector->AddChild(SmartLootTask);
+
+                // Priority 5: Legacy loot (fallback)
                 auto* LootTask = new AdvancedBotBehavior::BTTask_LootNearby();
                 LootTask->NodeName = "LootNearby";
                 CombatSelector->AddChild(LootTask);
 
-                auto* BuildTask = new AdvancedBotBehavior::BTTask_BuildCover();
-                BuildTask->NodeName = "BuildCover";
-                CombatSelector->AddChild(BuildTask);
+                // Priority 6: Legacy build (fallback)
+                auto* LegacyBuildTask = new AdvancedBotBehavior::BTTask_BuildCover();
+                LegacyBuildTask->NodeName = "BuildCover";
+                CombatSelector->AddChild(LegacyBuildTask);
 
                 Tree->AllNodes.push_back(CombatSelector);
                 RootSelector->AddChild(CombatSelector);
@@ -281,21 +299,45 @@ namespace AdvancedBotBehavior {
         CombatSelector->NodeName = "CombatAndLooting";
 
         {
+            // Priority 1: Flee storm
+            auto* FleeStormTask = new AdvancedBotBehavior::BTTask_FleeStorm();
+            FleeStormTask->NodeName = "FleeStorm";
+            CombatSelector->AddChild(FleeStormTask);
+        }
+
+        {
+            // Priority 2: Engage enemy
             auto* CombatTask = new BTTask_EngageEnemy();
             CombatTask->NodeName = "EngageEnemy";
             CombatSelector->AddChild(CombatTask);
         }
 
         {
+            // Priority 3: Advanced building
+            auto* BuildTask = new AdvancedBotBehavior::BTTask_AdvancedBuild();
+            BuildTask->NodeName = "AdvancedBuild";
+            CombatSelector->AddChild(BuildTask);
+        }
+
+        {
+            // Priority 4: Smart looting
+            auto* SmartLootTask = new AdvancedBotBehavior::BTTask_SmartLoot();
+            SmartLootTask->NodeName = "SmartLoot";
+            CombatSelector->AddChild(SmartLootTask);
+        }
+
+        {
+            // Priority 5: Legacy loot
             auto* LootTask = new BTTask_LootNearby();
             LootTask->NodeName = "LootNearby";
             CombatSelector->AddChild(LootTask);
         }
 
         {
-            auto* BuildTask = new BTTask_BuildCover();
-            BuildTask->NodeName = "BuildCover";
-            CombatSelector->AddChild(BuildTask);
+            // Priority 6: Legacy build
+            auto* LegacyBuildTask = new BTTask_BuildCover();
+            LegacyBuildTask->NodeName = "BuildCover";
+            CombatSelector->AddChild(LegacyBuildTask);
         }
 
         Tree->AllNodes.push_back(CombatSelector);

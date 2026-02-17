@@ -319,6 +319,11 @@ namespace Looting {
             return false;
         }
 
+        // Prevent double-opening
+        if (BuildingContainer->bAlreadySearched) {
+            return false;
+        }
+
         std::string ClassName = BuildingContainer->Class->GetName();
 
         auto SearchLootTierGroup = BuildingContainer->SearchLootTierGroup;
@@ -339,8 +344,11 @@ namespace Looting {
         // Clear any blocking states before opening chest
         if (SearchingPawn && SearchingPawn->AbilitySystemComponent && Globals::bChestsFix) {
             SearchingPawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+            // Also clear any active abilities that might interfere
+            SearchingPawn->AbilitySystemComponent->CancelAllAbilities();
         }
 
+        // Set container as searched BEFORE spawning loot to prevent reset
         BuildingContainer->SetNetDormancy(ENetDormancy::DORM_Awake);
         BuildingContainer->bAlreadySearched = true;
         BuildingContainer->BP_SetAlreadySearched(true);
@@ -348,8 +356,11 @@ namespace Looting {
         if (SearchingPawn) {
             BuildingContainer->SearchBounceData.SearchingPawn = SearchingPawn;
         }
+
+        // Force immediate replication to prevent client reset
         BuildingContainer->OnSetSearched();
         BuildingContainer->OnRep_bAlreadySearched();
+        BuildingContainer->ForceNetUpdate();
 
         if (SearchLootTierGroup == Loot_Treasure)
         {
