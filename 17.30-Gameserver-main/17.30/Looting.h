@@ -344,8 +344,6 @@ namespace Looting {
         // Clear any blocking states before opening chest
         if (SearchingPawn && SearchingPawn->AbilitySystemComponent && Globals::bChestsFix) {
             SearchingPawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
-            // Also clear any active abilities that might interfere
-            SearchingPawn->AbilitySystemComponent->CancelAllAbilities();
         }
 
         // Set container as searched BEFORE spawning loot to prevent reset

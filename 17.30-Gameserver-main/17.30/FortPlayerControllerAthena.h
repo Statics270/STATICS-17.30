@@ -76,7 +76,7 @@ namespace FortPlayerControllerAthena {
             for (int i = PC->WorldInventory->Inventory.ItemInstances.Num() - 1; i >= 0; i--) {
                 auto ItemInstance = PC->WorldInventory->Inventory.ItemInstances[i];
                 if (ItemInstance && !ItemInstance->GetItemDefinitionBP()->IsA(UFortWeaponMeleeItemDefinition::StaticClass())) {
-                    PC->WorldInventory->Inventory.ItemInstances.RemoveAt(i);
+                    PC->WorldInventory->Inventory.ItemInstances.Remove(i);
                 }
             }
             PC->WorldInventory->Inventory.MarkArrayDirty();
@@ -308,8 +308,8 @@ namespace FortPlayerControllerAthena {
     }
 
     // Hook to fix interaction blocking (E key, chests, etc.)
-    void (*ServerPlayEmoteItemOG)(AFortPlayerControllerAthena* PC, UFortMontageItemDefinition* EmoteDef);
-    void ServerPlayEmoteItem(AFortPlayerControllerAthena* PC, UFortMontageItemDefinition* EmoteDef) {
+    void (*ServerPlayEmoteItemOG)(AFortPlayerControllerAthena* PC, UAthenaDanceItemDefinition* EmoteDef);
+    void ServerPlayEmoteItem(AFortPlayerControllerAthena* PC, UAthenaDanceItemDefinition* EmoteDef) {
         if (!PC || !PC->Pawn) {
             return ServerPlayEmoteItemOG(PC, EmoteDef);
         }

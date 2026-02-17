@@ -19,8 +19,6 @@ namespace BuildingActor {
         // Clear any blocking states BEFORE harvesting to ensure pickaxe works
         if (Pawn->AbilitySystemComponent && Globals::bHarvestingFix) {
             Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
-            // Also clear any gameplay tags that might block harvesting
-            Pawn->AbilitySystemComponent->CancelAllAbilities();
         }
 
         int MaterialCount = (Damage / (UKismetMathLibrary::GetDefaultObj()->RandomIntegerInRange(6, 12)));
