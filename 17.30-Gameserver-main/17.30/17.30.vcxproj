@@ -139,6 +139,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AbilitySystemComponent.h" />
+    <ClInclude Include="ActionSystem.h" />
     <ClInclude Include="AdvancedBotBehavior.h" />
     <ClInclude Include="BehaviorTreeDecorators.h" />
     <ClInclude Include="BehaviorTreeEvaluators.h" />
@@ -149,6 +150,7 @@
     <ClInclude Include="BotsSpawner.h" />
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="FortAthenaAIBotController.h" />
+    <ClInclude Include="FortAthenaAIBotController_SDK.h" />
     <ClInclude Include="FortGameModeAthena.h" />
     <ClInclude Include="FortInventory.h" />
     <ClInclude Include="FortPlayerControllerAthena.h" />
