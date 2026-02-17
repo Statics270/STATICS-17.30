@@ -19,6 +19,8 @@ namespace BuildingActor {
         // Clear any blocking states BEFORE harvesting to ensure pickaxe works
         if (Pawn->AbilitySystemComponent && Globals::bHarvestingFix) {
             Pawn->AbilitySystemComponent->SetUserAbilityActivationInhibited(false);
+            // Also clear any gameplay tags that might block harvesting
+            Pawn->AbilitySystemComponent->CancelAllAbilities();
         }
 
         int MaterialCount = (Damage / (UKismetMathLibrary::GetDefaultObj()->RandomIntegerInRange(6, 12)));
@@ -32,6 +34,7 @@ namespace BuildingActor {
 
         // Fix resource pickup - ensure proper location and pickup handling
         FVector PickupLocation = Pawn->K2_GetActorLocation() + Pawn->GetActorForwardVector() * 100.f;
+        PickupLocation.Z += 50.f; // Slight Z offset to prevent falling through ground
 
         AFortPickup* Pickup = SpawnPickup(ResourceItemDefinition, MaterialCount, 0, PickupLocation, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, true, PC->MyFortPawn);
 

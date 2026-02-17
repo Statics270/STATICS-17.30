@@ -97,6 +97,15 @@ namespace AbilitySystemComponent {
                     AbilityName.find("Parachute") != std::string::npos ||
                     AbilityName.find("Bus") != std::string::npos;
 
+                // Allow grenades, consumables, and other gameplay abilities in aircraft
+                if (!bShouldBlock ||
+                    AbilityName.find("Grenade") != std::string::npos ||
+                    AbilityName.find("Consumable") != std::string::npos ||
+                    AbilityName.find("Healing") != std::string::npos)
+                {
+                    bShouldBlock = false;
+                }
+
                 if (bShouldBlock)
                 {
                     AbilitySystemComponent->ClientActivateAbilityFailed(Handle, PredictionKey.Current);

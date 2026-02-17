@@ -20,6 +20,9 @@ namespace Globals {
     bool bBotBuildingEnabled = true;
     bool bBotEmotesEnabled = true;
     bool bBotLobbyShooting = true;
+    bool bSmartBuildEnabled = true;
+    bool bSmartEditEnabled = false;
+    bool bFleeStormEnabled = true;
 
     // Vehicle Options
     bool bVehicleRadioEnabled = true;
@@ -44,6 +47,8 @@ namespace Globals {
     bool bInteractFix = true;               // Enable interact key fix
     bool bChestsFix = true;                 // Enable chest opening fix
     bool bHarvestingFix = true;             // Enable harvesting fix
+    bool bBuildFix = true;                  // Enable build action fix
+    bool bEditFix = true;                   // Enable edit action fix
 
     //REAL PLAYERS
     static int NextTeamIndex = 0;
