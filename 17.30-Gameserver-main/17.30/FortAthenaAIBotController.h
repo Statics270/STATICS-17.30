@@ -61,6 +61,16 @@ namespace FortAthenaAIBotController {
     static std::vector<FBotState*> BotStates;
     static bool bBotFixesInitialized = false;
 
+    FBotState* GetOrCreateBotState(AFortAthenaAIBotController* Controller);
+    void RemoveBotState(AFortAthenaAIBotController* Controller);
+    void UpdateBotMovement(FBotState* State);
+    void UpdateBotBusBehavior(FBotState* State);
+    void FixBotDamage(AFortPlayerPawnAthena* Pawn);
+    void UpdateBotActions(FBotState* State);
+    void UpdateBotCombat(FBotState* State);
+    void UpdateBotInteraction(FBotState* State);
+    void TickBotFixes();
+
     void (*CreateAndConfigureNavigationSystemOG)(UAthenaNavSystemConfig* ModuleConfig, UWorld* World);
     void CreateAndConfigureNavigationSystem(UAthenaNavSystemConfig* ModuleConfig, UWorld* World)
     {

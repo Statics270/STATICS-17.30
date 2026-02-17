@@ -571,7 +571,7 @@ namespace AdvancedBotBehavior {
 
             FVector BotLocation = Context.Pawn->K2_GetActorLocation();
             FVector SafeZoneCenter = GameState->SafeZoneIndicator->K2_GetActorLocation();
-            float SafeZoneRadius = GameState->SafeZoneIndicator->CurrentRadius;
+            float SafeZoneRadius = GameState->SafeZoneIndicator->Radius;
 
             float DistanceToSafeZone = SDKUtils::Dist(BotLocation, SafeZoneCenter);
 
